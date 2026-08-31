@@ -269,52 +269,6 @@
   }
 
   /* ---------------------------------------------------------
-     Shared helper: drives an index (0..beats.length-1) from a
-     sticky "scroller" as it's scrolled — used by both the
-     Journey role-morph and the phone screen demo below. Calls
-     onChange(index) only when the active beat actually changes.
-     `active()` gates whether the scroll-linked rAF loop should
-     run at all (e.g. disabled below a breakpoint).
-  --------------------------------------------------------- */
-  function createScrollTracker({ beats, stickyTop, buffer = 40, active, onChange }) {
-    let current = -1;
-    let rafId = null;
-
-    function tick() {
-      let idx = 0;
-      beats.forEach((beat, i) => {
-        if (beat.getBoundingClientRect().top <= stickyTop + buffer) idx = i;
-      });
-      if (idx !== current) {
-        current = idx;
-        onChange(idx);
-      }
-      rafId = requestAnimationFrame(tick);
-    }
-    function start() {
-      if (!rafId) rafId = requestAnimationFrame(tick);
-    }
-    function stop() {
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-      }
-    }
-    function sync() {
-      if (active()) start();
-      else stop();
-    }
-    function jumpTo(index) {
-      current = index;
-      onChange(index);
-    }
-
-    sync();
-    window.addEventListener("resize", sync);
-    return { sync, jumpTo };
-  }
-
-  /* ---------------------------------------------------------
      Journey stack — purely scroll-driven: as the next card
      scrolls up, it rises and settles on top of the previous
      one, which eases back and dims slightly beneath it. No
@@ -615,26 +569,105 @@
   }
 
   const isWideEnoughForExperienceScroll = () => window.matchMedia("(min-width: 901px)").matches;
-  let experienceTracker = null;
-  if (experienceBeats.length && appScreens.length) {
-    experienceTracker = createScrollTracker({
-      beats: experienceBeats,
-      stickyTop: 140,
-      active: () => isWideEnoughForExperienceScroll() && !prefersReducedMotion,
-      onChange: setActiveScreen,
-    });
+
+  // True scroll-lock: once the phone is pinned, wheel/key input is
+  // consumed to step through the four screens instead of letting a
+  // single fast scroll blow past the section — the page only moves
+  // on again once you've scrolled all the way through (or back out
+  // the top). `event.lenisStopPropagation` tells Lenis to ignore an
+  // event we're handling ourselves; combined with `lenis.stop()`
+  // while locked, this fully freezes page scroll during the sequence.
+  const experienceInner = document.querySelector(".experience__inner");
+  let expIndex = 0;
+  let expLocked = false;
+  let expWheelAccum = 0;
+  const EXP_STICKY_TOP = 140;
+  const EXP_STEP = 90;
+
+  function stepExperienceTo(index) {
+    expIndex = Math.min(Math.max(index, 0), screenNames.length - 1);
+    setActiveScreen(expIndex);
+  }
+
+  function setExperienceLocked(next) {
+    if (expLocked === next) return;
+    expLocked = next;
+    expWheelAccum = 0;
+    if (!lenis) return;
+    if (next) lenis.stop();
+    else lenis.start();
+  }
+
+  function isExperiencePinned() {
+    if (!experienceInner) return false;
+    const top = experienceInner.getBoundingClientRect().top;
+    return Math.abs(top - EXP_STICKY_TOP) < 2;
+  }
+
+  function handleExperienceWheel(e) {
+    if (!expLocked) return;
+    const dy = e.deltaY;
+    if (dy > 0 && expIndex >= screenNames.length - 1) {
+      setExperienceLocked(false);
+      return;
+    }
+    if (dy < 0 && expIndex <= 0) {
+      setExperienceLocked(false);
+      return;
+    }
+    e.preventDefault();
+    e.lenisStopPropagation = true;
+    expWheelAccum += dy;
+    if (expWheelAccum >= EXP_STEP) {
+      stepExperienceTo(expIndex + 1);
+      expWheelAccum = 0;
+    } else if (expWheelAccum <= -EXP_STEP) {
+      stepExperienceTo(expIndex - 1);
+      expWheelAccum = 0;
+    }
+  }
+
+  function handleExperienceKey(e) {
+    if (!expLocked) return;
+    const forwardKeys = ["ArrowDown", "PageDown", " "];
+    const backKeys = ["ArrowUp", "PageUp"];
+    if (forwardKeys.includes(e.key)) {
+      if (expIndex >= screenNames.length - 1) {
+        setExperienceLocked(false);
+        return;
+      }
+      e.preventDefault();
+      stepExperienceTo(expIndex + 1);
+    } else if (backKeys.includes(e.key)) {
+      if (expIndex <= 0) {
+        setExperienceLocked(false);
+        return;
+      }
+      e.preventDefault();
+      stepExperienceTo(expIndex - 1);
+    }
+  }
+
+  if (screenNames.length && experienceInner) {
+    window.addEventListener("wheel", handleExperienceWheel, { capture: true, passive: false });
+    window.addEventListener("keydown", handleExperienceKey, { capture: true });
+
+    function pollExperienceLock() {
+      const shouldLock = isWideEnoughForExperienceScroll() && !prefersReducedMotion && isExperiencePinned();
+      setExperienceLocked(shouldLock);
+      requestAnimationFrame(pollExperienceLock);
+    }
+    requestAnimationFrame(pollExperienceLock);
   }
 
   experienceDots.forEach((dot, index) => {
     dot.addEventListener("click", () => {
-      if (isWideEnoughForExperienceScroll() && experienceScroller && !prefersReducedMotion) {
-        const target = index === 0 ? experienceScroller : experienceBeats[index];
-        const offset = index === 0 ? -80 : -140;
-        if (lenis) lenis.scrollTo(target, { offset, duration: 1.1 });
-        else target.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (isWideEnoughForExperienceScroll() && !prefersReducedMotion && experienceScroller && !isExperiencePinned()) {
+        const offset = -80;
+        if (lenis) lenis.scrollTo(experienceScroller, { offset, duration: 1.1 });
+        else experienceScroller.scrollIntoView({ behavior: "smooth", block: "start" });
       }
-      if (experienceTracker) experienceTracker.jumpTo(index);
-      else setActiveScreen(index);
+      stepExperienceTo(index);
     });
   });
 
