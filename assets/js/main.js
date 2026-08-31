@@ -175,7 +175,7 @@
      Scroll reveal (IntersectionObserver)
   --------------------------------------------------------- */
   function initReveals() {
-    const targets = document.querySelectorAll(".reveal-mask, .reveal-up, .reveal-scale");
+    const targets = document.querySelectorAll(".reveal-mask, .reveal-up, .reveal-scale, .stack-card");
     if (!("IntersectionObserver" in window) || prefersReducedMotion) {
       targets.forEach((t) => t.classList.add("is-inview"));
       return;
@@ -315,101 +315,90 @@
   }
 
   /* ---------------------------------------------------------
-     Journey tabs + role morph (Broker/Owner/Tenant crossfade
-     in one sticky, anchored card as the section is scrolled)
+     Journey stack — purely scroll-driven: as the next card
+     scrolls up, it rises and settles on top of the previous
+     one, which eases back and dims slightly beneath it. No
+     click controls — the deck only responds to scrolling.
   --------------------------------------------------------- */
-  const tabBtns = document.querySelectorAll(".tabs__btn");
-  const tabsWrap = document.querySelector(".tabs");
-  const journeyBeats = document.querySelectorAll(".journey__beat");
-  const journeyRoles = document.querySelectorAll(".journey__role");
-  const journeyScroller = document.querySelector(".journey__scroller");
-  const journeyRoleNames = Array.from(journeyBeats).map((b) => b.dataset.role);
+  const stackSlots = document.querySelectorAll(".stack-card-slot");
+  const stackPanels = document.querySelectorAll(".stack-card-slot .stack-card__panel");
 
-  function setActiveTab(name) {
-    tabBtns.forEach((b) => b.classList.toggle("is-active", b.dataset.tab === name));
-    requestAnimationFrame(movePill);
+  function smoothstep(t) {
+    const c = Math.min(Math.max(t, 0), 1);
+    return c * c * (3 - 2 * c);
   }
 
-  function setActiveRole(index) {
-    const name = journeyRoleNames[index];
-    if (!name) return;
-    journeyRoles.forEach((role) => role.classList.toggle("is-active", role.dataset.role === name));
-    setActiveTab(name);
-  }
+  if (stackSlots.length && stackPanels.length) {
+    const STICKY_TOP = 110;
+    const target = new Array(stackSlots.length).fill(0);
+    const eased = new Array(stackSlots.length).fill(0);
+    // exponential smoothing time-constant (ms) — larger = smoother/slower
+    // to catch up, independent of frame rate
+    const TAU = 220;
+    let lastTime = null;
 
-  // animated pill background behind active tab
-  let movePill = () => {};
-  if (tabsWrap && tabBtns.length) {
-    const pill = document.createElement("span");
-    pill.className = "tabs__active-pill";
-    pill.style.cssText =
-      "position:absolute;top:6px;bottom:6px;border-radius:999px;background:var(--gold);transition:transform .45s cubic-bezier(.16,.84,.36,1), width .45s cubic-bezier(.16,.84,.36,1);z-index:0;";
-    tabsWrap.insertBefore(pill, tabsWrap.firstChild);
-    tabBtns.forEach((b) => (b.style.position = "relative"));
-
-    movePill = function movePill() {
-      const active = document.querySelector(".tabs__btn.is-active");
-      if (!active) return;
-      const wrapRect = tabsWrap.getBoundingClientRect();
-      const btnRect = active.getBoundingClientRect();
-      pill.style.width = btnRect.width + "px";
-      pill.style.transform = `translateX(${btnRect.left - wrapRect.left}px)`;
-    };
-    window.addEventListener("resize", movePill);
-    setTimeout(movePill, 60);
-  }
-
-  const isWideEnoughForJourneyScroll = () => window.matchMedia("(min-width: 861px)").matches;
-  let journeyTracker = null;
-  if (journeyBeats.length && journeyRoles.length) {
-    journeyTracker = createScrollTracker({
-      beats: journeyBeats,
-      stickyTop: 164,
-      active: () => isWideEnoughForJourneyScroll() && !prefersReducedMotion,
-      onChange: setActiveRole,
-    });
-  }
-
-  tabBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const index = journeyRoleNames.indexOf(btn.dataset.tab);
-      if (index === -1) return;
-      if (isWideEnoughForJourneyScroll() && journeyScroller && !prefersReducedMotion) {
-        const target = index === 0 ? journeyScroller : journeyBeats[index];
-        const offset = index === 0 ? -100 : -164;
-        if (lenis) lenis.scrollTo(target, { offset, duration: 1.1 });
-        else target.scrollIntoView({ behavior: "smooth", block: "start" });
+    function computeTargets() {
+      const vh = window.innerHeight;
+      for (let i = 0; i < stackSlots.length - 1; i++) {
+        const nextRect = stackSlots[i + 1].getBoundingClientRect();
+        const raw = (STICKY_TOP - nextRect.top + vh * 0.16) / (vh * 0.78);
+        target[i] = smoothstep(raw);
       }
-      if (journeyTracker) journeyTracker.jumpTo(index);
-      else setActiveRole(index);
-    });
-  });
-
-  // active role's photo gets the same light scroll parallax as the hero/cycle images
-  if (!prefersReducedMotion) {
-    let journeyImgTicking = false;
-    function updateJourneyImgParallax() {
-      journeyImgTicking = false;
-      const activeImg = document.querySelector(".journey__role.is-active .journey__media img");
-      if (!activeImg) return;
-      const rect = activeImg.getBoundingClientRect();
-      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-      const center = rect.top + rect.height / 2 - window.innerHeight / 2;
-      const progress = Math.min(Math.max(-center / window.innerHeight, -0.5), 0.5);
-      activeImg.style.transform = `translateY(${progress * 14}%) scale(1.1)`;
+      target[stackSlots.length - 1] = 0;
     }
-    window.addEventListener(
-      "scroll",
-      () => {
-        if (!journeyImgTicking) {
-          journeyImgTicking = true;
-          requestAnimationFrame(updateJourneyImgParallax);
-        }
-      },
-      { passive: true }
-    );
-    window.addEventListener("resize", updateJourneyImgParallax);
-    updateJourneyImgParallax();
+
+    function render(now) {
+      const dt = lastTime === null ? 16 : Math.min(now - lastTime, 48);
+      lastTime = now;
+      const k = prefersReducedMotion ? 1 : 1 - Math.exp(-dt / TAU);
+
+      stackPanels.forEach((panel, i) => {
+        eased[i] += (target[i] - eased[i]) * k;
+        const scale = 1 - eased[i] * 0.07;
+        const ty = -eased[i] * 30;
+        const dim = 1 - eased[i] * 0.35;
+        panel.style.transform = `translateY(${ty}px) scale(${scale})`;
+        panel.style.filter = `brightness(${dim})`;
+
+        if (prefersReducedMotion) return;
+        const img = panel.querySelector(".journey__media img");
+        if (!img) return;
+        const rect = img.getBoundingClientRect();
+        if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+        const center = rect.top + rect.height / 2 - window.innerHeight / 2;
+        const imgProgress = Math.min(Math.max(-center / window.innerHeight, -0.5), 0.5);
+        img.style.transform = `translateY(${imgProgress * 14}%) scale(1.1)`;
+      });
+    }
+
+    function loop(now) {
+      computeTargets();
+      render(now);
+      rafId = requestAnimationFrame(loop);
+    }
+
+    const isStacked = () => window.matchMedia("(min-width: 861px)").matches;
+    let rafId = null;
+    function startLoop() {
+      if (rafId) return;
+      lastTime = null;
+      rafId = requestAnimationFrame(loop);
+    }
+    function stopLoop() {
+      if (!rafId) return;
+      cancelAnimationFrame(rafId);
+      rafId = null;
+      stackPanels.forEach((panel) => {
+        panel.style.transform = "";
+        panel.style.filter = "";
+      });
+    }
+    function syncLoop() {
+      if (isStacked()) startLoop();
+      else stopLoop();
+    }
+    syncLoop();
+    window.addEventListener("resize", syncLoop);
   }
 
   /* ---------------------------------------------------------
@@ -507,7 +496,6 @@
 
   if (hasFinePointer && !prefersReducedMotion) {
     document.querySelectorAll(".btn").forEach((btn) => enableMagnetic(btn, 0.18, 0.35));
-    document.querySelectorAll(".tabs__btn").forEach((b) => enableMagnetic(b, 0.1, 0.2));
   }
 
   /* ---------------------------------------------------------

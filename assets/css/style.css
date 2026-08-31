@@ -550,69 +550,49 @@ em{
   margin-bottom: 48px;
 }
 
-.tabs{
-  display: inline-flex; gap: 6px;
-  padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  margin-bottom: 90px;
-  position: sticky;
-  top: 92px;
-  z-index: 20;
-  background: rgba(10,11,15,.7);
-  backdrop-filter: blur(10px);
-}
-.tabs__btn{
-  padding: 12px 26px;
-  border-radius: 999px;
-  font-size: 14px; font-weight: 600;
-  color: var(--muted);
-  transition: color .35s;
-  position: relative;
-}
-.tabs__btn.is-active{ color: var(--black); }
-.tabs__btn .tabs__pill{ display:none; }
-
 /* ---------------------------------------------------------
-   Journey stage — one sticky, anchored card; role and benefits
-   morph (crossfade + rise) between Broker/Owner/Tenant as the
-   section is scrolled, instead of hard-cutting.
+   Journey stack — cards rise from below and stack on top of
+   one another, driven purely by scroll position.
 --------------------------------------------------------- */
-.journey__scroller{ position: relative; }
+.journey__stack{ position: relative; }
 
-.journey__stage{
-  position: sticky;
-  top: 164px;
-  display: grid;
-  background: linear-gradient(160deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
-  border: 1px solid var(--line);
-  border-radius: 32px;
-  padding: clamp(28px, 4vw, 56px);
-  box-shadow: 0 50px 110px -30px rgba(0,0,0,.85);
-  backdrop-filter: blur(6px);
-  overflow: hidden;
+.stack-card-slot{
+  position: relative;
+  min-height: 92vh;
+  display: flex;
+  align-items: flex-start;
 }
+.stack-card-slot:last-child{ min-height: 0; padding-bottom: 30px; }
 
-.journey__role{
-  grid-area: 1 / 1;
+.stack-card{
+  position: sticky;
+  top: 110px;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(90px) scale(1.06);
+  transition: opacity 1.2s var(--ease-soft), transform 1.3s var(--ease);
+}
+.stack-card.is-inview{ opacity: 1; transform: translateY(0) scale(1); }
+
+.stack-card-slot:nth-child(1) .stack-card{ z-index: 1; }
+.stack-card-slot:nth-child(2) .stack-card{ z-index: 2; }
+.stack-card-slot:nth-child(3) .stack-card{ z-index: 3; }
+
+.stack-card__panel{
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 60px;
   align-items: center;
   text-align: left;
-  opacity: 0;
-  transform: translateY(26px) scale(.985);
-  transition: opacity .8s var(--ease-soft), transform .9s var(--ease);
-  pointer-events: none;
+  background: linear-gradient(160deg, rgba(255,255,255,.05), rgba(255,255,255,.015));
+  border: 1px solid var(--line);
+  border-radius: 32px;
+  padding: clamp(28px, 4vw, 56px);
+  box-shadow: 0 50px 110px -30px rgba(0,0,0,.85);
+  transform-origin: top center;
+  will-change: transform, filter;
+  backdrop-filter: blur(6px);
 }
-.journey__role.is-active{
-  opacity: 1;
-  transform: translateY(0) scale(1);
-  pointer-events: auto;
-}
-
-.journey__beat{ height: 92vh; }
-.journey__beat:last-child{ height: 40vh; }
 
 .journey__text h3{
   font-family: var(--font-display);
@@ -656,16 +636,16 @@ em{
 }
 
 @media (max-width: 860px){
-  .tabs{ position: static; background: none; backdrop-filter: none; }
-  .journey__beat{ display: none; }
-  .journey__stage{ position: static; top: auto; }
-  .journey__role{ grid-template-columns: 1fr; text-align: center; }
+  .stack-card-slot{ min-height: auto; margin-bottom: 26px; }
+  .stack-card-slot:last-child{ margin-bottom: 0; }
+  .stack-card{ position: static; top: auto; }
+  .stack-card__panel{ grid-template-columns: 1fr; text-align: center; }
   .journey__text{ order: 2; display: flex; flex-direction: column; align-items: center; }
   .journey__media{ order: 1; }
 }
 
 @media (prefers-reduced-motion: reduce){
-  .journey__role{ transition: none; }
+  .stack-card{ transition: none; }
 }
 
 /* ============================================================
