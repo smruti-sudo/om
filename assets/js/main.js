@@ -91,6 +91,58 @@
   }
 
   /* ---------------------------------------------------------
+     Marquee — clone the single authored set until it's wide
+     enough to loop seamlessly at any viewport width, keeping
+     a constant px/sec speed instead of a fixed duration.
+  --------------------------------------------------------- */
+  function setupMarquee(track) {
+    if (!track) return;
+    const container = track.parentElement;
+    const baseHTML = track.innerHTML;
+    const PX_PER_SECOND = 55;
+    const MAX_SETS = 16;
+
+    function fill() {
+      track.classList.remove("is-ready");
+      track.style.animationDuration = "";
+      track.innerHTML = baseHTML;
+
+      const containerWidth = container.offsetWidth;
+      let sets = 1;
+      while (track.scrollWidth < containerWidth * 2 && sets < MAX_SETS) {
+        track.insertAdjacentHTML("beforeend", baseHTML);
+        sets++;
+      }
+      if (sets % 2 !== 0 && sets < MAX_SETS) {
+        track.insertAdjacentHTML("beforeend", baseHTML);
+        sets++;
+      }
+
+      const halfWidth = track.scrollWidth / 2;
+      const duration = Math.max(14, halfWidth / PX_PER_SECOND);
+      track.style.animationDuration = duration + "s";
+      track.classList.add("is-ready");
+    }
+
+    fill();
+
+    // Text is set in a condensed webfont; if it's still loading at the
+    // first measurement, widths are based on the fallback font and can
+    // under-fill once the real font swaps in. Re-measure once settled.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(fill);
+    }
+
+    let resizeTimer = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(fill, 250);
+    });
+  }
+
+  document.querySelectorAll(".marquee__track").forEach(setupMarquee);
+
+  /* ---------------------------------------------------------
      Nav scroll state
   --------------------------------------------------------- */
   const nav = document.getElementById("nav");

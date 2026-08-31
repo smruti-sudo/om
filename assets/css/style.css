@@ -447,6 +447,7 @@ em{
   width: max-content;
   padding: 16px 0;
   animation: marqueeScroll 32s linear infinite;
+  animation-play-state: paused;
   font-family: var(--font-display);
   font-size: clamp(18px, 2.4vw, 26px);
   letter-spacing: .02em;
@@ -454,16 +455,14 @@ em{
   color: var(--cream);
   text-transform: uppercase;
 }
+.marquee__track.is-ready{ animation-play-state: running; }
 .marquee__track span:not(.dash):not(.diamond){ opacity: .85; }
 .marquee__track .dash, .marquee__track .diamond{ color: var(--gold); font-size: .6em; }
-.marquee__track--rev{ animation-direction: reverse; animation-duration: 40s; }
 
 @keyframes marqueeScroll{
   from{ transform: translateX(0); }
   to{ transform: translateX(-50%); }
 }
-
-.marquee--mid{ margin: 56px 0 40px; background: transparent; border-color: var(--line-faint); }
 
 /* ============================================================
    About
