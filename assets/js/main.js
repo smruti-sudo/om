@@ -175,7 +175,7 @@
      Scroll reveal (IntersectionObserver)
   --------------------------------------------------------- */
   function initReveals() {
-    const targets = document.querySelectorAll(".reveal-mask, .reveal-up, .reveal-scale");
+    const targets = document.querySelectorAll(".reveal-mask, .reveal-up, .reveal-scale, .stack-card");
     if (!("IntersectionObserver" in window) || prefersReducedMotion) {
       targets.forEach((t) => t.classList.add("is-inview"));
       return;
@@ -269,72 +269,128 @@
   }
 
   /* ---------------------------------------------------------
-     Journey tabs
+     Journey tabs + card stack (cards rise from below and
+     stack on top of one another as the section is scrolled)
   --------------------------------------------------------- */
   const tabBtns = document.querySelectorAll(".tabs__btn");
-  const panels = document.querySelectorAll(".journey__panel");
   const tabsWrap = document.querySelector(".tabs");
+  const stackSlots = document.querySelectorAll(".stack-card-slot");
+  const stackPanels = document.querySelectorAll(".stack-card-slot .stack-card__panel");
 
-  function activateTab(name) {
+  function setActiveTab(name) {
     tabBtns.forEach((b) => b.classList.toggle("is-active", b.dataset.tab === name));
-    panels.forEach((p) => p.classList.toggle("is-active", p.dataset.panel === name));
-    updateJourneyParallax();
+    requestAnimationFrame(movePill);
   }
 
   tabBtns.forEach((btn) => {
-    btn.addEventListener("click", () => activateTab(btn.dataset.tab));
+    btn.addEventListener("click", () => {
+      const slot = document.querySelector(`.stack-card-slot[data-panel="${btn.dataset.tab}"]`);
+      if (slot) {
+        if (lenis) lenis.scrollTo(slot, { offset: -70, duration: 1.1 });
+        else slot.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "start" });
+      }
+      setActiveTab(btn.dataset.tab);
+    });
   });
 
-  /* ---------------------------------------------------------
-     Journey photos — scroll parallax on the active panel's image
-  --------------------------------------------------------- */
-  let journeyTicking = false;
-  function updateJourneyParallax() {
-    journeyTicking = false;
-    const activeImg = document.querySelector(".journey__panel.is-active .journey__media img");
-    if (!activeImg) return;
-    const rect = activeImg.getBoundingClientRect();
-    if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-    const center = rect.top + rect.height / 2 - window.innerHeight / 2;
-    const progress = Math.min(Math.max(-center / window.innerHeight, -0.5), 0.5);
-    activeImg.style.transform = `translateY(${progress * 14}%) scale(1.1)`;
-  }
-  if (!prefersReducedMotion) {
-    window.addEventListener(
-      "scroll",
-      () => {
-        if (!journeyTicking) {
-          journeyTicking = true;
-          requestAnimationFrame(updateJourneyParallax);
-        }
-      },
-      { passive: true }
-    );
-    window.addEventListener("resize", updateJourneyParallax);
-    updateJourneyParallax();
-  }
-
   // animated pill background behind active tab
+  let movePill = () => {};
   if (tabsWrap && tabBtns.length) {
     const pill = document.createElement("span");
     pill.className = "tabs__active-pill";
     pill.style.cssText =
       "position:absolute;top:6px;bottom:6px;border-radius:999px;background:var(--gold);transition:transform .45s cubic-bezier(.16,.84,.36,1), width .45s cubic-bezier(.16,.84,.36,1);z-index:0;";
-    tabsWrap.style.position = "relative";
     tabsWrap.insertBefore(pill, tabsWrap.firstChild);
     tabBtns.forEach((b) => (b.style.position = "relative"));
 
-    function movePill() {
+    movePill = function movePill() {
       const active = document.querySelector(".tabs__btn.is-active");
       if (!active) return;
       const wrapRect = tabsWrap.getBoundingClientRect();
       const btnRect = active.getBoundingClientRect();
       pill.style.width = btnRect.width + "px";
       pill.style.transform = `translateX(${btnRect.left - wrapRect.left}px)`;
-    }
-    tabBtns.forEach((btn) => btn.addEventListener("click", () => requestAnimationFrame(movePill)));
+    };
     window.addEventListener("resize", movePill);
     setTimeout(movePill, 60);
+  }
+
+  // as each card scrolls under the next one, ease it back and dim it
+  // slightly so the stack reads as a real deck of cards; each card's
+  // photo also gets the same light scroll parallax as the hero/cycle images
+  if (stackSlots.length && stackPanels.length) {
+    const STICKY_TOP = 164;
+    const progress = new Array(stackSlots.length).fill(0);
+    const eased = new Array(stackSlots.length).fill(0);
+    let lastActive = "";
+
+    function computeProgress() {
+      const vh = window.innerHeight;
+      for (let i = 0; i < stackSlots.length - 1; i++) {
+        const nextRect = stackSlots[i + 1].getBoundingClientRect();
+        const raw = (STICKY_TOP - nextRect.top + vh * 0.14) / (vh * 0.6);
+        progress[i] = Math.min(Math.max(raw, 0), 1);
+      }
+      progress[stackSlots.length - 1] = 0;
+
+      let activeIndex = 0;
+      stackSlots.forEach((slot, i) => {
+        if (slot.getBoundingClientRect().top <= STICKY_TOP + 40) activeIndex = i;
+      });
+      const activeName = stackSlots[activeIndex].dataset.panel;
+      if (activeName !== lastActive) {
+        lastActive = activeName;
+        setActiveTab(activeName);
+      }
+    }
+
+    function render() {
+      stackPanels.forEach((panel, i) => {
+        eased[i] += (progress[i] - eased[i]) * (prefersReducedMotion ? 1 : 0.18);
+        const scale = 1 - eased[i] * 0.07;
+        const ty = -eased[i] * 30;
+        const dim = 1 - eased[i] * 0.35;
+        panel.style.transform = `translateY(${ty}px) scale(${scale})`;
+        panel.style.filter = `brightness(${dim})`;
+
+        if (prefersReducedMotion) return;
+        const img = panel.querySelector(".journey__media img");
+        if (!img) return;
+        const rect = img.getBoundingClientRect();
+        if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+        const center = rect.top + rect.height / 2 - window.innerHeight / 2;
+        const imgProgress = Math.min(Math.max(-center / window.innerHeight, -0.5), 0.5);
+        img.style.transform = `translateY(${imgProgress * 14}%) scale(1.1)`;
+      });
+    }
+
+    function loop() {
+      computeProgress();
+      render();
+      requestAnimationFrame(loop);
+    }
+
+    const isStacked = () => window.matchMedia("(min-width: 861px)").matches;
+    let rafId = null;
+    function startLoop() {
+      if (rafId) return;
+      rafId = requestAnimationFrame(loop);
+    }
+    function stopLoop() {
+      if (!rafId) return;
+      cancelAnimationFrame(rafId);
+      rafId = null;
+      stackPanels.forEach((panel) => {
+        panel.style.transform = "";
+        panel.style.filter = "";
+      });
+    }
+    function syncLoop() {
+      if (isStacked()) startLoop();
+      else stopLoop();
+    }
+    syncLoop();
+    window.addEventListener("resize", syncLoop);
   }
 
   /* ---------------------------------------------------------
