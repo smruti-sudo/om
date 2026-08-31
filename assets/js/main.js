@@ -418,6 +418,7 @@
   if (hasFinePointer && !prefersReducedMotion) {
     document.querySelectorAll(".journey__media").forEach((el) => enableTilt(el, 9, 1.03));
     document.querySelectorAll(".phone").forEach((el) => enableTilt(el, 12, 1.02));
+    document.querySelectorAll(".cycle__frame").forEach((el) => enableTilt(el, 5, 1.01));
   }
 
   /* ---------------------------------------------------------

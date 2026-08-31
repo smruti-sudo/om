@@ -317,9 +317,8 @@ em{
   background: var(--black-2);
   clip-path: circle(0px at calc(100% - 48px) 44px);
   transition: clip-path .85s var(--ease);
-  display: flex; align-items: flex-start;
-  padding-top: 140px;
-  padding-bottom: 60px;
+  display: flex; align-items: stretch;
+  padding: 96px var(--pad) 32px;
   pointer-events: none;
   overflow-y: auto;
 }
@@ -329,13 +328,17 @@ em{
 }
 .menu-overlay__inner{
   width: 100%; max-width: var(--container);
-  margin: 0 auto; padding: 0 var(--pad);
-  display: flex; flex-direction: column; gap: 60px;
+  margin: 0 auto;
+  min-height: 100%;
+  display: flex; flex-direction: column;
+  justify-content: space-between;
+  gap: 24px;
 }
-.menu-overlay__links{ display: flex; flex-direction: column; gap: 6px; }
+.menu-overlay__links{ display: flex; flex-direction: column; gap: clamp(0px, 1vh, 6px); }
 .menu-overlay__links a{
   font-family: var(--font-display);
-  font-size: clamp(40px, 8vw, 92px);
+  font-size: clamp(28px, min(7vw, 8.5vh), 92px);
+  line-height: 1.06;
   font-weight: 700;
   color: var(--cream);
   display: inline-block;
