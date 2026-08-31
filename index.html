@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neowaa — Manage Every Rental, From Verification to Move-Out</title>
+<meta name="description" content="Neowaa is an all-in-one rental management platform that helps property owners, tenants, and brokers simplify contracts, payments, and maintenance.">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230A0B0F'/%3E%3Ccircle cx='32' cy='32' r='14' fill='none' stroke='%23C9A35E' stroke-width='4'/%3E%3Ccircle cx='32' cy='32' r='3' fill='%23C9A35E'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/css/fonts.css">
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<!-- Preloader -->
+<div class="preloader" id="preloader">
+  <div class="preloader__mark">NEOWAA</div>
+  <div class="preloader__bar"><span></span></div>
+</div>
+
+<!-- Custom cursor -->
+<div class="cursor" id="cursor">
+  <div class="cursor__dot"></div>
+  <div class="cursor__ring"></div>
+</div>
+
+<!-- Nav -->
+<header class="nav" id="nav">
+  <div class="nav__inner">
+    <a href="#top" class="nav__logo" data-cursor="link">NEOWAA</a>
+    <nav class="nav__links">
+      <a href="#cycle" data-cursor="link">Rental Cycle</a>
+      <a href="#journey" data-cursor="link">Journey</a>
+      <a href="#experience" data-cursor="link">Experience</a>
+      <a href="#faq" data-cursor="link">FAQs</a>
+    </nav>
+    <div class="nav__meta">
+      <span>103 Palm Grove, Al Barsha, Dubai</span>
+      <span class="dot">&middot;</span>
+      <span>+971 51234 7546</span>
+    </div>
+    <div class="nav__actions">
+      <a href="#download" class="btn btn--gold btn--sm" data-cursor="link"><span>Download app</span></a>
+      <button class="burger" id="burger" aria-label="Open menu" data-cursor="link">
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Fullscreen menu overlay -->
+<div class="menu-overlay" id="menuOverlay">
+  <div class="menu-overlay__inner">
+    <ul class="menu-overlay__links">
+      <li><a href="#top" data-cursor="link"><span>Home</span></a></li>
+      <li><a href="#about" data-cursor="link"><span>About Us</span></a></li>
+      <li><a href="#cycle" data-cursor="link"><span>Rental Cycle</span></a></li>
+      <li><a href="#journey" data-cursor="link"><span>Journey</span></a></li>
+      <li><a href="#experience" data-cursor="link"><span>Experience</span></a></li>
+      <li><a href="#faq" data-cursor="link"><span>FAQs</span></a></li>
+    </ul>
+    <div class="menu-overlay__footer">
+      <div>
+        <p class="label">Contact</p>
+        <p>HelpDesk@Neowaa.ae</p>
+        <p>+971 51234 7546</p>
+      </div>
+      <div>
+        <p class="label">Follow</p>
+        <p><a href="#" data-cursor="link">Instagram</a></p>
+        <p><a href="#" data-cursor="link">LinkedIn</a></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main id="top">
+
+  <!-- HERO -->
+  <section class="hero" id="hero">
+    <div class="hero__media">
+      <img class="hero__img" id="heroImg" src="assets/img/hero.jpg" alt="Modern residence at dusk">
+      <div class="hero__gradient"></div>
+      <div class="hero__grain"></div>
+    </div>
+
+    <div class="hero__content">
+      <div class="reveal-mask"><span class="badge">Built for UAE rental management</span></div>
+
+      <h1 class="hero__title">
+        <span class="reveal-mask"><span class="line">Manage Every Rental</span></span>
+        <span class="reveal-mask"><span class="line">From Property Verification</span></span>
+        <span class="reveal-mask"><span class="line">to <em>Move-Out</em></span></span>
+      </h1>
+
+      <div class="reveal-mask hero__ctas">
+        <div class="hero__ctas-inner">
+          <a href="#download" class="btn btn--gold" data-cursor="link"><span>Download app</span></a>
+          <a href="#about" class="btn btn--ghost" data-cursor="link"><span>About Us</span></a>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero__scroll">
+      <span class="hero__scroll-line"></span>
+      <span>Scroll</span>
+    </div>
+  </section>
+
+  <!-- MARQUEE STRIP -->
+  <div class="marquee marquee--top" aria-hidden="true">
+    <div class="marquee__track">
+      <span>Verification</span><span class="dash">&mdash;</span>
+      <span>Contract</span><span class="dash">&mdash;</span>
+      <span>Payments</span><span class="dash">&mdash;</span>
+      <span>Maintenance</span><span class="dash">&mdash;</span>
+      <span>Renewal</span><span class="dash">&mdash;</span>
+      <span>Move&#8209;out</span><span class="dash">&mdash;</span>
+      <span>Verification</span><span class="dash">&mdash;</span>
+      <span>Contract</span><span class="dash">&mdash;</span>
+      <span>Payments</span><span class="dash">&mdash;</span>
+      <span>Maintenance</span><span class="dash">&mdash;</span>
+      <span>Renewal</span><span class="dash">&mdash;</span>
+      <span>Move&#8209;out</span><span class="dash">&mdash;</span>
+    </div>
+  </div>
+
+  <!-- ABOUT -->
+  <section class="about" id="about">
+    <div class="about__inner">
+      <p class="about__lede reveal-up">
+        <span class="about__brand">Neowaa</span> is an all-in-one rental management platform that helps property
+        owners, tenants, and brokers simplify contracts, payments, and maintenance.
+      </p>
+
+      <ul class="about__pills">
+        <li class="reveal-up"><span class="about__icon">&#9670;</span>Built for UAE</li>
+        <li class="reveal-up"><span class="about__icon">&#10003;</span>UAE Pass Login</li>
+        <li class="reveal-up"><span class="about__icon">&#9998;</span>Digital Contracts</li>
+        <li class="reveal-up"><span class="about__icon">&#8361;</span>Secure Payments</li>
+        <li class="reveal-up"><span class="about__icon">&#128274;</span>Encrypted Documents</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- RENTAL CYCLE -->
+  <section class="cycle" id="cycle">
+    <div class="cycle__head">
+      <h2 class="reveal-up">Neowaa helps manage your <em>Rental Cycle!</em></h2>
+    </div>
+
+    <div class="cycle__frame reveal-scale">
+      <img src="assets/img/cycle-skyline.jpg" alt="Dubai skyline at dusk" loading="lazy">
+      <div class="cycle__frame-overlay"></div>
+    </div>
+
+    <div class="marquee marquee--mid" aria-hidden="true">
+      <div class="marquee__track marquee__track--rev">
+        <span>Verification</span><span class="diamond">&#9670;</span>
+        <span>Contract</span><span class="diamond">&#9670;</span>
+        <span>Payments</span><span class="diamond">&#9670;</span>
+        <span>Maintenance</span><span class="diamond">&#9670;</span>
+        <span>Renewal</span><span class="diamond">&#9670;</span>
+        <span>Move&#8209;out</span><span class="diamond">&#9670;</span>
+        <span>Verification</span><span class="diamond">&#9670;</span>
+        <span>Contract</span><span class="diamond">&#9670;</span>
+        <span>Payments</span><span class="diamond">&#9670;</span>
+        <span>Maintenance</span><span class="diamond">&#9670;</span>
+        <span>Renewal</span><span class="diamond">&#9670;</span>
+        <span>Move&#8209;out</span><span class="diamond">&#9670;</span>
+      </div>
+    </div>
+
+    <p class="cycle__copy reveal-up">
+      Managing rent payments, maintenance, documents, renewals, and move-outs shouldn't require multiple apps
+      and endless paperwork. Neowaa brings every step together in one secure platform.
+    </p>
+  </section>
+
+  <!-- JOURNEY -->
+  <section class="journey" id="journey">
+    <div class="journey__glow"></div>
+    <div class="journey__inner">
+      <p class="eyebrow reveal-up">From onboarding to move-out</p>
+      <h2 class="reveal-up">The complete rental journey<br>in one platform</h2>
+
+      <div class="tabs reveal-up" role="tablist">
+        <button class="tabs__btn is-active" data-tab="broker" role="tab">Broker</button>
+        <button class="tabs__btn" data-tab="owner" role="tab">Owner</button>
+        <button class="tabs__btn" data-tab="tenant" role="tab">Tenant</button>
+      </div>
+
+      <div class="journey__panels">
+
+        <div class="journey__panel is-active" data-panel="broker">
+          <div class="journey__text">
+            <h3>Broker</h3>
+            <p>Manage clients, properties, and agreements in one workspace.</p>
+            <ul class="check-list">
+              <li>Verify Property</li>
+              <li>Coordinate Agreement</li>
+              <li>Assist Communication</li>
+              <li>Support Renewal</li>
+            </ul>
+            <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
+          </div>
+          <div class="journey__media">
+            <img src="assets/img/journey-broker.jpg" alt="Luxury villa with infinity pool at dusk" loading="lazy">
+          </div>
+        </div>
+
+        <div class="journey__panel" data-panel="owner">
+          <div class="journey__text">
+            <h3>Owner</h3>
+            <p>Track your properties, tenants, and income from a single dashboard.</p>
+            <ul class="check-list">
+              <li>List Property</li>
+              <li>Approve Tenants</li>
+              <li>Track Payments</li>
+              <li>Manage Renewals</li>
+            </ul>
+            <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
+          </div>
+          <div class="journey__media">
+            <img src="assets/img/journey-owner.jpg" alt="Bright modern villa with pool" loading="lazy">
+          </div>
+        </div>
+
+        <div class="journey__panel" data-panel="tenant">
+          <div class="journey__text">
+            <h3>Tenant</h3>
+            <p>Pay rent, submit requests, and manage your home &mdash; all in one app.</p>
+            <ul class="check-list">
+              <li>Pay Rent Digitally</li>
+              <li>Request Maintenance</li>
+              <li>Sign Contracts</li>
+              <li>Renew Instantly</li>
+            </ul>
+            <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
+          </div>
+          <div class="journey__media">
+            <img src="assets/img/journey-tenant.jpg" alt="Modern villa with swimming pool" loading="lazy">
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- EXPERIENCE -->
+  <section class="experience" id="experience">
+    <div class="experience__glow"></div>
+    <div class="experience__inner">
+      <div class="experience__phone reveal-scale">
+        <div class="phone">
+          <div class="phone__notch"></div>
+          <div class="phone__screen">
+            <div class="app-status">
+              <span>9:41</span>
+              <span class="app-status__icons">&#9679;&#9679;&#9679;</span>
+            </div>
+            <p class="app-label">neowaa</p>
+            <div class="app-search">Search property</div>
+
+            <div class="app-progress">
+              <svg viewBox="0 0 120 120" class="app-progress__ring">
+                <circle cx="60" cy="60" r="52" class="track"></circle>
+                <circle cx="60" cy="60" r="52" class="value" id="progressRing"></circle>
+              </svg>
+              <div class="app-progress__label">
+                <span class="app-progress__num" id="progressNum">0</span><span>%</span>
+              </div>
+            </div>
+            <p class="app-hint">Add documents to unlock renewals</p>
+            <button class="app-cta">Complete Your Profile</button>
+
+            <div class="app-card">
+              <div class="app-card__row">
+                <span>Rent Payment</span>
+                <span class="app-card__amt">AED 8,500</span>
+              </div>
+              <button class="app-card__btn">Pay Now</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="experience__text">
+        <p class="eyebrow reveal-up">Experience Neowaa</p>
+        <h2 class="reveal-up">Online Rent<br><em>Payments</em></h2>
+        <p class="reveal-up experience__desc">
+          Set up automated, secure rent payments via direct deposit or credit card.
+          View full historical logs and digital receipts.
+        </p>
+        <div class="tag-row reveal-up">
+          <span>Auto-debit</span>
+          <span>Digital receipts</span>
+          <span>Payment history</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONFIDENCE -->
+  <section class="confidence" id="confidence">
+    <div class="confidence__left">
+      <h2 class="reveal-up">Manage Rentals<br>with <em>Confidence</em></h2>
+      <p class="reveal-up">
+        Because scattered document storage, payment tracking, and maintenance coordination
+        into one trusted rental management platform.
+      </p>
+    </div>
+    <div class="confidence__right">
+      <div class="feature-row reveal-up">
+        <span class="feature-row__icon">&#9635;</span>
+        <div>
+          <h4>Secure Storage</h4>
+          <p>Store contracts, documents, and rental records securely.</p>
+        </div>
+      </div>
+      <div class="feature-row reveal-up">
+        <span class="feature-row__icon">&#8644;</span>
+        <div>
+          <h4>Better Collaboration</h4>
+          <p>Keep owners, tenants, and brokers connected throughout the rental journey.</p>
+        </div>
+      </div>
+      <div class="feature-row reveal-up">
+        <span class="feature-row__icon">&#9978;</span>
+        <div>
+          <h4>Secure by Design</h4>
+          <p>Identity verification and encrypted document storage help protect sensitive information.</p>
+        </div>
+      </div>
+      <div class="feature-row reveal-up">
+        <span class="feature-row__icon">&#9201;</span>
+        <div>
+          <h4>Save Time</h4>
+          <p>Reduce paperwork and manage daily tasks more efficiently.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq" id="faq">
+    <div class="faq__head reveal-up">
+      <h2>Frequently Asked<br>Questions</h2>
+      <a href="#" class="link-underline" data-cursor="link">Read More &nbsp;&rarr;</a>
+    </div>
+
+    <div class="accordion">
+      <div class="accordion__item is-active reveal-up">
+        <button class="accordion__trigger">
+          <span class="accordion__num">01</span>
+          <span class="accordion__q">Who can use Neowaa?</span>
+          <span class="accordion__icon">+</span>
+        </button>
+        <div class="accordion__panel">
+          <p>Neowaa is designed for property owners, tenants, and brokers looking for a simpler way to manage rental agreements and day-to-day rental activities.</p>
+        </div>
+      </div>
+      <div class="accordion__item reveal-up">
+        <button class="accordion__trigger">
+          <span class="accordion__num">02</span>
+          <span class="accordion__q">Is my information secure?</span>
+          <span class="accordion__icon">+</span>
+        </button>
+        <div class="accordion__panel">
+          <p>Yes. Neowaa uses identity verification and encrypted document storage to protect sensitive information at every step.</p>
+        </div>
+      </div>
+      <div class="accordion__item reveal-up">
+        <button class="accordion__trigger">
+          <span class="accordion__num">03</span>
+          <span class="accordion__q">Can I renew rental contracts digitally?</span>
+          <span class="accordion__icon">+</span>
+        </button>
+        <div class="accordion__panel">
+          <p>Yes, renewals are handled digitally end-to-end, from notice through signed agreement.</p>
+        </div>
+      </div>
+      <div class="accordion__item reveal-up">
+        <button class="accordion__trigger">
+          <span class="accordion__num">04</span>
+          <span class="accordion__q">How are maintenance requests handled?</span>
+          <span class="accordion__icon">+</span>
+        </button>
+        <div class="accordion__panel">
+          <p>Tenants submit requests in-app, owners and brokers get notified, and the status is tracked until resolved.</p>
+        </div>
+      </div>
+      <div class="accordion__item reveal-up">
+        <button class="accordion__trigger">
+          <span class="accordion__num">05</span>
+          <span class="accordion__q">Can tenants pay rent through Neowaa?</span>
+          <span class="accordion__icon">+</span>
+        </button>
+        <div class="accordion__panel">
+          <p>Yes, tenants can pay rent via direct deposit or credit card with automated receipts and full payment history.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- DOWNLOAD / CTA band -->
+  <section class="cta" id="download">
+    <h2 class="reveal-up">Ready to simplify<br><em>your&nbsp;rentals?</em></h2>
+    <a href="#" class="btn btn--gold btn--lg reveal-up" data-cursor="link"><span>Download the app</span></a>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="footer">
+  <div class="footer__top">
+    <div class="footer__brand">
+      <p class="footer__logo">neowaa<span>&reg;</span></p>
+      <p>All-in-one UAE rental management for owners, tenants, and brokers.</p>
+    </div>
+    <div class="footer__col">
+      <p class="label">Explore</p>
+      <a href="#top" data-cursor="link">Home</a>
+      <a href="#about" data-cursor="link">About Us</a>
+      <a href="#faq" data-cursor="link">FAQs</a>
+      <a href="#download" data-cursor="link">Download App</a>
+      <a href="#" data-cursor="link">Blog</a>
+    </div>
+    <div class="footer__col">
+      <p class="label">Contact</p>
+      <a href="tel:+971512347546" data-cursor="link">+971 51234 7546</a>
+      <span>103 Palm Grove, Al Barsha, Dubai</span>
+      <a href="mailto:HelpDesk@Neowaa.ae" data-cursor="link">HelpDesk@Neowaa.ae</a>
+    </div>
+    <div class="footer__col">
+      <p class="label">Social</p>
+      <a href="#" data-cursor="link">Instagram</a>
+      <a href="#" data-cursor="link">LinkedIn</a>
+    </div>
+  </div>
+  <div class="footer__wordmark" aria-hidden="true">NEOWAA</div>
+  <div class="footer__bottom">
+    <span>&copy; 2026 Neowaa. All rights reserved.</span>
+  </div>
+</footer>
+
+<script src="assets/js/main.js"></script>
+</body>
+</html>
