@@ -291,6 +291,17 @@ em{
 
 .nav__actions{ display: flex; align-items: center; gap: 16px; }
 
+/* Hide the redundant logo/links/meta behind the fullscreen menu — its
+   own link list already covers them. Download app + the close toggle
+   stay put since the nav sits above the overlay by design. */
+.menu-open .nav__logo,
+.menu-open .nav__links,
+.menu-open .nav__meta{
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s var(--ease-soft);
+}
+
 .burger{
   width: 40px; height: 40px;
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
