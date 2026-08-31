@@ -175,7 +175,7 @@
      Scroll reveal (IntersectionObserver)
   --------------------------------------------------------- */
   function initReveals() {
-    const targets = document.querySelectorAll(".reveal-mask, .reveal-up, .reveal-scale, .stack-card");
+    const targets = document.querySelectorAll(".reveal-mask, .reveal-up, .reveal-scale");
     if (!("IntersectionObserver" in window) || prefersReducedMotion) {
       targets.forEach((t) => t.classList.add("is-inview"));
       return;
@@ -269,29 +269,73 @@
   }
 
   /* ---------------------------------------------------------
-     Journey tabs + card stack (cards rise from below and
-     stack on top of one another as the section is scrolled)
+     Shared helper: drives an index (0..beats.length-1) from a
+     sticky "scroller" as it's scrolled — used by both the
+     Journey role-morph and the phone screen demo below. Calls
+     onChange(index) only when the active beat actually changes.
+     `active()` gates whether the scroll-linked rAF loop should
+     run at all (e.g. disabled below a breakpoint).
+  --------------------------------------------------------- */
+  function createScrollTracker({ beats, stickyTop, buffer = 40, active, onChange }) {
+    let current = -1;
+    let rafId = null;
+
+    function tick() {
+      let idx = 0;
+      beats.forEach((beat, i) => {
+        if (beat.getBoundingClientRect().top <= stickyTop + buffer) idx = i;
+      });
+      if (idx !== current) {
+        current = idx;
+        onChange(idx);
+      }
+      rafId = requestAnimationFrame(tick);
+    }
+    function start() {
+      if (!rafId) rafId = requestAnimationFrame(tick);
+    }
+    function stop() {
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
+    }
+    function sync() {
+      if (active()) start();
+      else stop();
+    }
+    function jumpTo(index) {
+      current = index;
+      onChange(index);
+    }
+
+    sync();
+    window.addEventListener("resize", sync);
+    return { sync, jumpTo };
+  }
+
+  /* ---------------------------------------------------------
+     Journey tabs + role morph (Broker/Owner/Tenant crossfade
+     in one sticky, anchored card as the section is scrolled)
   --------------------------------------------------------- */
   const tabBtns = document.querySelectorAll(".tabs__btn");
   const tabsWrap = document.querySelector(".tabs");
-  const stackSlots = document.querySelectorAll(".stack-card-slot");
-  const stackPanels = document.querySelectorAll(".stack-card-slot .stack-card__panel");
+  const journeyBeats = document.querySelectorAll(".journey__beat");
+  const journeyRoles = document.querySelectorAll(".journey__role");
+  const journeyScroller = document.querySelector(".journey__scroller");
+  const journeyRoleNames = Array.from(journeyBeats).map((b) => b.dataset.role);
 
   function setActiveTab(name) {
     tabBtns.forEach((b) => b.classList.toggle("is-active", b.dataset.tab === name));
     requestAnimationFrame(movePill);
   }
 
-  tabBtns.forEach((btn) => {
-    btn.addEventListener("click", () => {
-      const slot = document.querySelector(`.stack-card-slot[data-panel="${btn.dataset.tab}"]`);
-      if (slot) {
-        if (lenis) lenis.scrollTo(slot, { offset: -70, duration: 1.1 });
-        else slot.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth", block: "start" });
-      }
-      setActiveTab(btn.dataset.tab);
-    });
-  });
+  function setActiveRole(index) {
+    const name = journeyRoleNames[index];
+    if (!name) return;
+    journeyRoles.forEach((role) => role.classList.toggle("is-active", role.dataset.role === name));
+    setActiveTab(name);
+  }
 
   // animated pill background behind active tab
   let movePill = () => {};
@@ -315,82 +359,57 @@
     setTimeout(movePill, 60);
   }
 
-  // as each card scrolls under the next one, ease it back and dim it
-  // slightly so the stack reads as a real deck of cards; each card's
-  // photo also gets the same light scroll parallax as the hero/cycle images
-  if (stackSlots.length && stackPanels.length) {
-    const STICKY_TOP = 164;
-    const progress = new Array(stackSlots.length).fill(0);
-    const eased = new Array(stackSlots.length).fill(0);
-    let lastActive = "";
+  const isWideEnoughForJourneyScroll = () => window.matchMedia("(min-width: 861px)").matches;
+  let journeyTracker = null;
+  if (journeyBeats.length && journeyRoles.length) {
+    journeyTracker = createScrollTracker({
+      beats: journeyBeats,
+      stickyTop: 164,
+      active: () => isWideEnoughForJourneyScroll() && !prefersReducedMotion,
+      onChange: setActiveRole,
+    });
+  }
 
-    function computeProgress() {
-      const vh = window.innerHeight;
-      for (let i = 0; i < stackSlots.length - 1; i++) {
-        const nextRect = stackSlots[i + 1].getBoundingClientRect();
-        const raw = (STICKY_TOP - nextRect.top + vh * 0.14) / (vh * 0.6);
-        progress[i] = Math.min(Math.max(raw, 0), 1);
+  tabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const index = journeyRoleNames.indexOf(btn.dataset.tab);
+      if (index === -1) return;
+      if (isWideEnoughForJourneyScroll() && journeyScroller && !prefersReducedMotion) {
+        const target = index === 0 ? journeyScroller : journeyBeats[index];
+        const offset = index === 0 ? -100 : -164;
+        if (lenis) lenis.scrollTo(target, { offset, duration: 1.1 });
+        else target.scrollIntoView({ behavior: "smooth", block: "start" });
       }
-      progress[stackSlots.length - 1] = 0;
+      if (journeyTracker) journeyTracker.jumpTo(index);
+      else setActiveRole(index);
+    });
+  });
 
-      let activeIndex = 0;
-      stackSlots.forEach((slot, i) => {
-        if (slot.getBoundingClientRect().top <= STICKY_TOP + 40) activeIndex = i;
-      });
-      const activeName = stackSlots[activeIndex].dataset.panel;
-      if (activeName !== lastActive) {
-        lastActive = activeName;
-        setActiveTab(activeName);
-      }
+  // active role's photo gets the same light scroll parallax as the hero/cycle images
+  if (!prefersReducedMotion) {
+    let journeyImgTicking = false;
+    function updateJourneyImgParallax() {
+      journeyImgTicking = false;
+      const activeImg = document.querySelector(".journey__role.is-active .journey__media img");
+      if (!activeImg) return;
+      const rect = activeImg.getBoundingClientRect();
+      if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+      const center = rect.top + rect.height / 2 - window.innerHeight / 2;
+      const progress = Math.min(Math.max(-center / window.innerHeight, -0.5), 0.5);
+      activeImg.style.transform = `translateY(${progress * 14}%) scale(1.1)`;
     }
-
-    function render() {
-      stackPanels.forEach((panel, i) => {
-        eased[i] += (progress[i] - eased[i]) * (prefersReducedMotion ? 1 : 0.18);
-        const scale = 1 - eased[i] * 0.07;
-        const ty = -eased[i] * 30;
-        const dim = 1 - eased[i] * 0.35;
-        panel.style.transform = `translateY(${ty}px) scale(${scale})`;
-        panel.style.filter = `brightness(${dim})`;
-
-        if (prefersReducedMotion) return;
-        const img = panel.querySelector(".journey__media img");
-        if (!img) return;
-        const rect = img.getBoundingClientRect();
-        if (rect.bottom < 0 || rect.top > window.innerHeight) return;
-        const center = rect.top + rect.height / 2 - window.innerHeight / 2;
-        const imgProgress = Math.min(Math.max(-center / window.innerHeight, -0.5), 0.5);
-        img.style.transform = `translateY(${imgProgress * 14}%) scale(1.1)`;
-      });
-    }
-
-    function loop() {
-      computeProgress();
-      render();
-      requestAnimationFrame(loop);
-    }
-
-    const isStacked = () => window.matchMedia("(min-width: 861px)").matches;
-    let rafId = null;
-    function startLoop() {
-      if (rafId) return;
-      rafId = requestAnimationFrame(loop);
-    }
-    function stopLoop() {
-      if (!rafId) return;
-      cancelAnimationFrame(rafId);
-      rafId = null;
-      stackPanels.forEach((panel) => {
-        panel.style.transform = "";
-        panel.style.filter = "";
-      });
-    }
-    function syncLoop() {
-      if (isStacked()) startLoop();
-      else stopLoop();
-    }
-    syncLoop();
-    window.addEventListener("resize", syncLoop);
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (!journeyImgTicking) {
+          journeyImgTicking = true;
+          requestAnimationFrame(updateJourneyImgParallax);
+        }
+      },
+      { passive: true }
+    );
+    window.addEventListener("resize", updateJourneyImgParallax);
+    updateJourneyImgParallax();
   }
 
   /* ---------------------------------------------------------
@@ -536,45 +555,135 @@
   }
 
   /* ---------------------------------------------------------
-     Phone mockup — self-playing live-app-UI loop
+     Experience — the phone stays put; its screen (and the
+     matching copy alongside it) scroll-scrubs through
+     Payments / Contracts / Maintenance / Documents, morphing
+     in place rather than hard-cutting, the same technique as
+     the Journey role morph above. Below the breakpoint there's
+     no headroom for a sticky scroll-scrub, so it auto-cycles
+     instead while the phone is in view.
   --------------------------------------------------------- */
-  const phoneEl = document.querySelector(".experience__phone");
-  const appCardBtn = document.querySelector(".app-card__btn");
-  let phoneLoopTimer = null;
+  const experienceScroller = document.querySelector(".experience__scroller");
+  const experienceBeats = document.querySelectorAll(".experience__beat");
+  const appScreens = document.querySelectorAll(".app-screen");
+  const experienceCopies = document.querySelectorAll(".experience__copy");
+  const experienceDots = document.querySelectorAll(".experience__dots button");
+  const screenNames = Array.from(experienceBeats).map((b) => b.dataset.screen);
 
-  function playPhoneLoop() {
-    if (!appCardBtn) return;
-    appCardBtn.textContent = "Paid ✓";
-    appCardBtn.classList.add("is-success");
-    phoneLoopTimer = setTimeout(() => {
-      appCardBtn.textContent = "Pay Now";
-      appCardBtn.classList.remove("is-success");
-      phoneLoopTimer = setTimeout(playPhoneLoop, 3200);
+  let payLoopTimer = null;
+  function playPayLoop() {
+    const btn = document.getElementById("payNowBtn");
+    if (!btn) return;
+    btn.textContent = "Paid ✓";
+    btn.classList.add("is-success");
+    payLoopTimer = setTimeout(() => {
+      btn.textContent = "Pay Now";
+      btn.classList.remove("is-success");
+      payLoopTimer = setTimeout(playPayLoop, 3200);
     }, 1900);
   }
-
-  function stopPhoneLoop() {
-    clearTimeout(phoneLoopTimer);
+  function stopPayLoop() {
+    clearTimeout(payLoopTimer);
+    const btn = document.getElementById("payNowBtn");
+    if (btn) {
+      btn.textContent = "Pay Now";
+      btn.classList.remove("is-success");
+    }
   }
 
-  if (phoneEl && appCardBtn && !prefersReducedMotion) {
-    if ("IntersectionObserver" in window) {
-      const phoneIO = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              stopPhoneLoop();
-              phoneLoopTimer = setTimeout(playPhoneLoop, 2400);
-            } else {
-              stopPhoneLoop();
-            }
-          });
-        },
-        { threshold: 0.5 }
-      );
-      phoneIO.observe(phoneEl);
-    } else {
-      setTimeout(playPhoneLoop, 2400);
+  let signLoopTimer = null;
+  function playSignLoop() {
+    const btn = document.getElementById("signBtn");
+    if (!btn) return;
+    btn.textContent = "Signed ✓";
+    btn.classList.add("is-success");
+    signLoopTimer = setTimeout(() => {
+      btn.textContent = "Sign Digitally";
+      btn.classList.remove("is-success");
+      signLoopTimer = setTimeout(playSignLoop, 3200);
+    }, 1900);
+  }
+  function stopSignLoop() {
+    clearTimeout(signLoopTimer);
+    const btn = document.getElementById("signBtn");
+    if (btn) {
+      btn.textContent = "Sign Digitally";
+      btn.classList.remove("is-success");
     }
+  }
+
+  function setActiveScreen(index) {
+    const name = screenNames[index];
+    if (!name) return;
+    appScreens.forEach((s) => s.classList.toggle("is-active", s.dataset.screen === name));
+    experienceCopies.forEach((c) => c.classList.toggle("is-active", c.dataset.screen === name));
+    experienceDots.forEach((d, i) => d.classList.toggle("is-active", i === index));
+
+    if (!prefersReducedMotion) {
+      if (name === "payments") setTimeout(playPayLoop, 900);
+      else stopPayLoop();
+      if (name === "contracts") setTimeout(playSignLoop, 900);
+      else stopSignLoop();
+    }
+  }
+
+  const isWideEnoughForExperienceScroll = () => window.matchMedia("(min-width: 901px)").matches;
+  let experienceTracker = null;
+  if (experienceBeats.length && appScreens.length) {
+    experienceTracker = createScrollTracker({
+      beats: experienceBeats,
+      stickyTop: 140,
+      active: () => isWideEnoughForExperienceScroll() && !prefersReducedMotion,
+      onChange: setActiveScreen,
+    });
+  }
+
+  experienceDots.forEach((dot, index) => {
+    dot.addEventListener("click", () => {
+      if (isWideEnoughForExperienceScroll() && experienceScroller && !prefersReducedMotion) {
+        const target = index === 0 ? experienceScroller : experienceBeats[index];
+        const offset = index === 0 ? -80 : -140;
+        if (lenis) lenis.scrollTo(target, { offset, duration: 1.1 });
+        else target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      if (experienceTracker) experienceTracker.jumpTo(index);
+      else setActiveScreen(index);
+    });
+  });
+
+  // mobile / narrow-viewport fallback: auto-cycle the four screens
+  // on a timer while the phone is in view, since there's no sticky
+  // headroom to scroll-scrub against on small screens
+  const experienceSection = document.getElementById("experience");
+  if (experienceSection && screenNames.length && !prefersReducedMotion && "IntersectionObserver" in window) {
+    let mobileTimer = null;
+    let mobileIndex = 0;
+    function startMobileCycle() {
+      if (mobileTimer || isWideEnoughForExperienceScroll()) return;
+      mobileIndex = 0;
+      setActiveScreen(mobileIndex);
+      mobileTimer = setInterval(() => {
+        mobileIndex = (mobileIndex + 1) % screenNames.length;
+        setActiveScreen(mobileIndex);
+      }, 3600);
+    }
+    function stopMobileCycle() {
+      clearInterval(mobileTimer);
+      mobileTimer = null;
+    }
+    const experienceIO = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (isWideEnoughForExperienceScroll()) return;
+          if (entry.isIntersecting) startMobileCycle();
+          else stopMobileCycle();
+        });
+      },
+      { threshold: 0.4 }
+    );
+    experienceIO.observe(experienceSection);
+    window.addEventListener("resize", () => {
+      if (isWideEnoughForExperienceScroll()) stopMobileCycle();
+    });
   }
 })();
