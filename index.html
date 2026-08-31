@@ -21,7 +21,7 @@
 <!-- Custom cursor -->
 <div class="cursor" id="cursor">
   <div class="cursor__dot"></div>
-  <div class="cursor__ring"></div>
+  <div class="cursor__ring"><span class="cursor__label" id="cursorLabel"></span></div>
 </div>
 
 <!-- Nav -->
@@ -107,15 +107,9 @@
     </div>
   </section>
 
-  <!-- MARQUEE STRIP -->
+  <!-- MARQUEE STRIP — JS clones this single set enough times to loop seamlessly at any width -->
   <div class="marquee marquee--top" aria-hidden="true">
     <div class="marquee__track">
-      <span>Verification</span><span class="dash">&mdash;</span>
-      <span>Contract</span><span class="dash">&mdash;</span>
-      <span>Payments</span><span class="dash">&mdash;</span>
-      <span>Maintenance</span><span class="dash">&mdash;</span>
-      <span>Renewal</span><span class="dash">&mdash;</span>
-      <span>Move&#8209;out</span><span class="dash">&mdash;</span>
       <span>Verification</span><span class="dash">&mdash;</span>
       <span>Contract</span><span class="dash">&mdash;</span>
       <span>Payments</span><span class="dash">&mdash;</span>
@@ -149,19 +143,13 @@
       <h2 class="reveal-up">Neowaa helps manage your <em>Rental Cycle!</em></h2>
     </div>
 
-    <div class="cycle__frame reveal-scale">
-      <img src="assets/img/cycle-skyline.jpg" alt="Dubai skyline at dusk" loading="lazy">
+    <div class="cycle__frame reveal-scale" id="cycleFrame">
+      <img src="assets/img/cycle-skyline.jpg" alt="Dubai skyline at dusk" loading="lazy" id="cycleFrameImg">
       <div class="cycle__frame-overlay"></div>
     </div>
 
     <div class="marquee marquee--mid" aria-hidden="true">
       <div class="marquee__track marquee__track--rev">
-        <span>Verification</span><span class="diamond">&#9670;</span>
-        <span>Contract</span><span class="diamond">&#9670;</span>
-        <span>Payments</span><span class="diamond">&#9670;</span>
-        <span>Maintenance</span><span class="diamond">&#9670;</span>
-        <span>Renewal</span><span class="diamond">&#9670;</span>
-        <span>Move&#8209;out</span><span class="diamond">&#9670;</span>
         <span>Verification</span><span class="diamond">&#9670;</span>
         <span>Contract</span><span class="diamond">&#9670;</span>
         <span>Payments</span><span class="diamond">&#9670;</span>
@@ -204,7 +192,7 @@
             </ul>
             <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
           </div>
-          <div class="journey__media">
+          <div class="journey__media" data-cursor-label="View">
             <img src="assets/img/journey-broker.jpg" alt="Luxury villa with infinity pool at dusk" loading="lazy">
           </div>
         </div>
@@ -221,7 +209,7 @@
             </ul>
             <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
           </div>
-          <div class="journey__media">
+          <div class="journey__media" data-cursor-label="View">
             <img src="assets/img/journey-owner.jpg" alt="Bright modern villa with pool" loading="lazy">
           </div>
         </div>
@@ -238,7 +226,7 @@
             </ul>
             <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
           </div>
-          <div class="journey__media">
+          <div class="journey__media" data-cursor-label="View">
             <img src="assets/img/journey-tenant.jpg" alt="Modern villa with swimming pool" loading="lazy">
           </div>
         </div>
@@ -252,6 +240,7 @@
     <div class="experience__glow"></div>
     <div class="experience__inner">
       <div class="experience__phone reveal-scale">
+        <div class="phone-float">
         <div class="phone">
           <div class="phone__notch"></div>
           <div class="phone__screen">
@@ -282,6 +271,7 @@
               <button class="app-card__btn">Pay Now</button>
             </div>
           </div>
+        </div>
         </div>
       </div>
 
@@ -444,6 +434,7 @@
   </div>
 </footer>
 
+<script src="assets/js/vendor/lenis.min.js"></script>
 <script src="assets/js/main.js"></script>
 </body>
 </html>

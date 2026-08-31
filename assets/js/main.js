@@ -6,6 +6,86 @@
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   /* ---------------------------------------------------------
+     Lenis smooth scroll
+  --------------------------------------------------------- */
+  let lenis = null;
+  if (!prefersReducedMotion && window.Lenis) {
+    lenis = new Lenis({
+      duration: 1.05,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+    (function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    })(0);
+  }
+
+  document.querySelectorAll('a[href^="#"]').forEach((a) => {
+    a.addEventListener("click", (e) => {
+      const id = a.getAttribute("href");
+      if (!id || id.length <= 1) return;
+      const target = document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      if (lenis) lenis.scrollTo(target, { offset: -86, duration: 1.2 });
+      else target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
+  /* ---------------------------------------------------------
+     Marquee — clone the single authored set until it's wide
+     enough to loop seamlessly at any viewport width, keeping
+     a constant px/sec speed instead of a fixed duration.
+  --------------------------------------------------------- */
+  function setupMarquee(track) {
+    if (!track) return;
+    const container = track.parentElement;
+    const baseHTML = track.innerHTML;
+    const PX_PER_SECOND = 55;
+    const MAX_SETS = 16;
+
+    function fill() {
+      track.classList.remove("is-ready");
+      track.style.animationDuration = "";
+      track.innerHTML = baseHTML;
+
+      const containerWidth = container.offsetWidth;
+      let sets = 1;
+      while (track.scrollWidth < containerWidth * 2 && sets < MAX_SETS) {
+        track.insertAdjacentHTML("beforeend", baseHTML);
+        sets++;
+      }
+      if (sets % 2 !== 0 && sets < MAX_SETS) {
+        track.insertAdjacentHTML("beforeend", baseHTML);
+        sets++;
+      }
+
+      const halfWidth = track.scrollWidth / 2;
+      const duration = Math.max(14, halfWidth / PX_PER_SECOND);
+      track.style.animationDuration = duration + "s";
+      track.classList.add("is-ready");
+    }
+
+    fill();
+
+    // Text is set in a condensed webfont; if it's still loading at the
+    // first measurement, widths are based on the fallback font and can
+    // under-fill once the real font swaps in. Re-measure once settled.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(fill);
+    }
+
+    let resizeTimer = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(fill, 250);
+    });
+  }
+
+  document.querySelectorAll(".marquee__track").forEach(setupMarquee);
+
+  /* ---------------------------------------------------------
      Preloader
   --------------------------------------------------------- */
   const preloader = document.getElementById("preloader");
@@ -132,6 +212,23 @@
     );
   }
 
+  // Same light parallax treatment on the Rental Cycle frame photo
+  const cycleFrameImg = document.getElementById("cycleFrameImg");
+  const cycleFrame = document.getElementById("cycleFrame");
+  if (cycleFrameImg && cycleFrame && !prefersReducedMotion) {
+    window.addEventListener(
+      "scroll",
+      () => {
+        const rect = cycleFrame.getBoundingClientRect();
+        if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+        const center = rect.top + rect.height / 2 - window.innerHeight / 2;
+        const progress = Math.min(Math.max(-center / window.innerHeight, -0.5), 0.5);
+        cycleFrameImg.style.transform = `translateY(${progress * 8}%) scale(1.06)`;
+      },
+      { passive: true }
+    );
+  }
+
   /* ---------------------------------------------------------
      Journey tabs
   --------------------------------------------------------- */
@@ -250,19 +347,108 @@
   }
 
   /* ---------------------------------------------------------
-     Magnetic buttons
+     Magnetic elements (buttons get a strong pull, nav/tabs a light one)
+  --------------------------------------------------------- */
+  function enableMagnetic(el, strengthX, strengthY) {
+    el.addEventListener("mousemove", (e) => {
+      const r = el.getBoundingClientRect();
+      const x = e.clientX - r.left - r.width / 2;
+      const y = e.clientY - r.top - r.height / 2;
+      el.style.transform = `translate(${x * strengthX}px, ${y * strengthY}px)`;
+    });
+    el.addEventListener("mouseleave", () => {
+      el.style.transform = "translate(0,0)";
+    });
+  }
+
+  if (hasFinePointer && !prefersReducedMotion) {
+    document.querySelectorAll(".btn").forEach((btn) => enableMagnetic(btn, 0.18, 0.35));
+    document.querySelectorAll(".nav__links a").forEach((a) => enableMagnetic(a, 0.12, 0.22));
+    document.querySelectorAll(".tabs__btn").forEach((b) => enableMagnetic(b, 0.1, 0.2));
+  }
+
+  /* ---------------------------------------------------------
+     3D tilt on cards & images
+  --------------------------------------------------------- */
+  function enableTilt(el, max, scale) {
+    el.style.transition = "transform .4s cubic-bezier(.16,.84,.36,1)";
+    el.addEventListener("mousemove", (e) => {
+      const r = el.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width;
+      const py = (e.clientY - r.top) / r.height;
+      const rx = (py - 0.5) * -max;
+      const ry = (px - 0.5) * max;
+      el.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) scale(${scale})`;
+    });
+    el.addEventListener("mouseleave", () => {
+      el.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)";
+    });
+  }
+
+  if (hasFinePointer && !prefersReducedMotion) {
+    document.querySelectorAll(".journey__media").forEach((el) => enableTilt(el, 9, 1.03));
+    document.querySelectorAll(".phone").forEach((el) => enableTilt(el, 12, 1.02));
+  }
+
+  /* ---------------------------------------------------------
+     Cursor labels ("View" on image cards etc.)
   --------------------------------------------------------- */
   if (hasFinePointer && !prefersReducedMotion) {
-    document.querySelectorAll(".btn").forEach((btn) => {
-      btn.addEventListener("mousemove", (e) => {
-        const r = btn.getBoundingClientRect();
-        const x = e.clientX - r.left - r.width / 2;
-        const y = e.clientY - r.top - r.height / 2;
-        btn.style.transform = `translate(${x * 0.18}px, ${y * 0.35}px)`;
+    const cursorEl = document.getElementById("cursor");
+    const cursorLabel = document.getElementById("cursorLabel");
+    document.querySelectorAll("[data-cursor-label]").forEach((el) => {
+      el.addEventListener("mouseenter", () => {
+        if (!cursorEl || !cursorLabel) return;
+        cursorLabel.textContent = el.dataset.cursorLabel;
+        cursorEl.classList.add("has-label");
       });
-      btn.addEventListener("mouseleave", () => {
-        btn.style.transform = "translate(0,0)";
+      el.addEventListener("mouseleave", () => {
+        if (!cursorEl || !cursorLabel) return;
+        cursorEl.classList.remove("has-label");
       });
     });
+  }
+
+  /* ---------------------------------------------------------
+     Phone mockup — self-playing live-app-UI loop
+  --------------------------------------------------------- */
+  const phoneEl = document.querySelector(".experience__phone");
+  const appCardBtn = document.querySelector(".app-card__btn");
+  let phoneLoopTimer = null;
+
+  function playPhoneLoop() {
+    if (!appCardBtn) return;
+    appCardBtn.textContent = "Paid ✓";
+    appCardBtn.classList.add("is-success");
+    phoneLoopTimer = setTimeout(() => {
+      appCardBtn.textContent = "Pay Now";
+      appCardBtn.classList.remove("is-success");
+      phoneLoopTimer = setTimeout(playPhoneLoop, 3200);
+    }, 1900);
+  }
+
+  function stopPhoneLoop() {
+    clearTimeout(phoneLoopTimer);
+  }
+
+  if (phoneEl && appCardBtn && !prefersReducedMotion) {
+    if ("IntersectionObserver" in window) {
+      const phoneIO = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              stopPhoneLoop();
+              phoneLoopTimer = setTimeout(playPhoneLoop, 2400);
+            } else {
+              stopPhoneLoop();
+            }
+          });
+        },
+        { threshold: 0.5 }
+      );
+      phoneIO.observe(phoneEl);
+    } else {
+      setTimeout(playPhoneLoop, 2400);
+    }
   }
 })();
