@@ -6,6 +6,86 @@
   const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   /* ---------------------------------------------------------
+     Lenis smooth scroll
+  --------------------------------------------------------- */
+  let lenis = null;
+  if (!prefersReducedMotion && window.Lenis) {
+    lenis = new Lenis({
+      duration: 1.05,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+    (function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    })(0);
+  }
+
+  document.querySelectorAll('a[href^="#"]').forEach((a) => {
+    a.addEventListener("click", (e) => {
+      const id = a.getAttribute("href");
+      if (!id || id.length <= 1) return;
+      const target = document.querySelector(id);
+      if (!target) return;
+      e.preventDefault();
+      if (lenis) lenis.scrollTo(target, { offset: -86, duration: 1.2 });
+      else target.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  });
+
+  /* ---------------------------------------------------------
+     Marquee — clone the single authored set until it's wide
+     enough to loop seamlessly at any viewport width, keeping
+     a constant px/sec speed instead of a fixed duration.
+  --------------------------------------------------------- */
+  function setupMarquee(track) {
+    if (!track) return;
+    const container = track.parentElement;
+    const baseHTML = track.innerHTML;
+    const PX_PER_SECOND = 55;
+    const MAX_SETS = 16;
+
+    function fill() {
+      track.classList.remove("is-ready");
+      track.style.animationDuration = "";
+      track.innerHTML = baseHTML;
+
+      const containerWidth = container.offsetWidth;
+      let sets = 1;
+      while (track.scrollWidth < containerWidth * 2 && sets < MAX_SETS) {
+        track.insertAdjacentHTML("beforeend", baseHTML);
+        sets++;
+      }
+      if (sets % 2 !== 0 && sets < MAX_SETS) {
+        track.insertAdjacentHTML("beforeend", baseHTML);
+        sets++;
+      }
+
+      const halfWidth = track.scrollWidth / 2;
+      const duration = Math.max(14, halfWidth / PX_PER_SECOND);
+      track.style.animationDuration = duration + "s";
+      track.classList.add("is-ready");
+    }
+
+    fill();
+
+    // Text is set in a condensed webfont; if it's still loading at the
+    // first measurement, widths are based on the fallback font and can
+    // under-fill once the real font swaps in. Re-measure once settled.
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(fill);
+    }
+
+    let resizeTimer = null;
+    window.addEventListener("resize", () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(fill, 250);
+    });
+  }
+
+  document.querySelectorAll(".marquee__track").forEach(setupMarquee);
+
+  /* ---------------------------------------------------------
      Preloader
   --------------------------------------------------------- */
   const preloader = document.getElementById("preloader");
@@ -95,7 +175,7 @@
      Scroll reveal (IntersectionObserver)
   --------------------------------------------------------- */
   function initReveals() {
-    const targets = document.querySelectorAll(".reveal-mask, .reveal-up, .reveal-scale");
+    const targets = document.querySelectorAll(".reveal-mask, .reveal-up, .reveal-scale, .stack-card");
     if (!("IntersectionObserver" in window) || prefersReducedMotion) {
       targets.forEach((t) => t.classList.add("is-inview"));
       return;
@@ -132,43 +212,160 @@
     );
   }
 
-  /* ---------------------------------------------------------
-     Journey tabs
-  --------------------------------------------------------- */
-  const tabBtns = document.querySelectorAll(".tabs__btn");
-  const panels = document.querySelectorAll(".journey__panel");
-  const tabsWrap = document.querySelector(".tabs");
-
-  function activateTab(name) {
-    tabBtns.forEach((b) => b.classList.toggle("is-active", b.dataset.tab === name));
-    panels.forEach((p) => p.classList.toggle("is-active", p.dataset.panel === name));
+  // Same light parallax treatment on the Rental Cycle frame photo
+  const cycleFrameImg = document.getElementById("cycleFrameImg");
+  const cycleFrame = document.getElementById("cycleFrame");
+  if (cycleFrameImg && cycleFrame && !prefersReducedMotion) {
+    window.addEventListener(
+      "scroll",
+      () => {
+        const rect = cycleFrame.getBoundingClientRect();
+        if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+        const center = rect.top + rect.height / 2 - window.innerHeight / 2;
+        const progress = Math.min(Math.max(-center / window.innerHeight, -0.5), 0.5);
+        cycleFrameImg.style.transform = `translateY(${progress * 8}%) scale(1.06)`;
+      },
+      { passive: true }
+    );
   }
 
-  tabBtns.forEach((btn) => {
-    btn.addEventListener("click", () => activateTab(btn.dataset.tab));
-  });
+  /* ---------------------------------------------------------
+     Word-by-word brighten — words scroll-scrub from dim to full
+     opacity as their paragraph passes through a reading zone,
+     dimming back if you scroll back up (not a one-shot reveal).
+     Used on the About lede, Rental Cycle copy, and the Confidence
+     feature descriptions.
+  --------------------------------------------------------- */
+  function wrapWords(el) {
+    if (el.querySelector(".word")) return; // already wrapped (e.g. About lede's hand-authored markup)
+    el.innerHTML = el.textContent
+      .split(/(\s+)/)
+      .map((chunk) => (chunk.trim() === "" ? chunk : `<span class="word">${chunk}</span>`))
+      .join("");
+  }
 
-  // animated pill background behind active tab
-  if (tabsWrap && tabBtns.length) {
-    const pill = document.createElement("span");
-    pill.className = "tabs__active-pill";
-    pill.style.cssText =
-      "position:absolute;top:6px;bottom:6px;border-radius:999px;background:var(--gold);transition:transform .45s cubic-bezier(.16,.84,.36,1), width .45s cubic-bezier(.16,.84,.36,1);z-index:0;";
-    tabsWrap.style.position = "relative";
-    tabsWrap.insertBefore(pill, tabsWrap.firstChild);
-    tabBtns.forEach((b) => (b.style.position = "relative"));
-
-    function movePill() {
-      const active = document.querySelector(".tabs__btn.is-active");
-      if (!active) return;
-      const wrapRect = tabsWrap.getBoundingClientRect();
-      const btnRect = active.getBoundingClientRect();
-      pill.style.width = btnRect.width + "px";
-      pill.style.transform = `translateX(${btnRect.left - wrapRect.left}px)`;
+  function initWordReveal(el, { start = 1.05, end = 0.1 } = {}) {
+    wrapWords(el);
+    const words = Array.from(el.querySelectorAll(".word"));
+    if (!words.length) return;
+    if (prefersReducedMotion) {
+      words.forEach((word) => (word.style.opacity = 1));
+      return;
     }
-    tabBtns.forEach((btn) => btn.addEventListener("click", () => requestAnimationFrame(movePill)));
-    window.addEventListener("resize", movePill);
-    setTimeout(movePill, 60);
+    let ticking = false;
+    function update() {
+      ticking = false;
+      const rect = el.getBoundingClientRect();
+      const startPx = window.innerHeight * start;
+      const endPx = window.innerHeight * end;
+      const progress = Math.min(Math.max((startPx - rect.top) / (startPx - endPx), 0), 1);
+      const n = words.length;
+      words.forEach((word, i) => {
+        const wordProgress = Math.min(Math.max(progress * n - i, 0), 1);
+        word.style.opacity = 0.25 + 0.75 * wordProgress;
+      });
+    }
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      },
+      { passive: true }
+    );
+    window.addEventListener("resize", update);
+    update();
+  }
+
+  document.querySelectorAll(".word-reveal").forEach((el) => initWordReveal(el));
+
+  /* ---------------------------------------------------------
+     Journey stack — purely scroll-driven: as the next card
+     scrolls up, it rises and settles on top of the previous
+     one, which eases back and dims slightly beneath it. No
+     click controls — the deck only responds to scrolling.
+  --------------------------------------------------------- */
+  const stackSlots = document.querySelectorAll(".stack-card-slot");
+  const stackPanels = document.querySelectorAll(".stack-card-slot .stack-card__panel");
+
+  function smoothstep(t) {
+    const c = Math.min(Math.max(t, 0), 1);
+    return c * c * (3 - 2 * c);
+  }
+
+  if (stackSlots.length && stackPanels.length) {
+    const STICKY_TOP = 110;
+    const target = new Array(stackSlots.length).fill(0);
+    const eased = new Array(stackSlots.length).fill(0);
+    // exponential smoothing time-constant (ms) — larger = smoother/slower
+    // to catch up, independent of frame rate
+    const TAU = 220;
+    let lastTime = null;
+
+    function computeTargets() {
+      const vh = window.innerHeight;
+      for (let i = 0; i < stackSlots.length - 1; i++) {
+        const nextRect = stackSlots[i + 1].getBoundingClientRect();
+        const raw = (STICKY_TOP - nextRect.top + vh * 0.16) / (vh * 0.78);
+        target[i] = smoothstep(raw);
+      }
+      target[stackSlots.length - 1] = 0;
+    }
+
+    function render(now) {
+      const dt = lastTime === null ? 16 : Math.min(now - lastTime, 48);
+      lastTime = now;
+      const k = prefersReducedMotion ? 1 : 1 - Math.exp(-dt / TAU);
+
+      stackPanels.forEach((panel, i) => {
+        eased[i] += (target[i] - eased[i]) * k;
+        const scale = 1 - eased[i] * 0.07;
+        const ty = -eased[i] * 30;
+        const dim = 1 - eased[i] * 0.35;
+        panel.style.transform = `translateY(${ty}px) scale(${scale})`;
+        panel.style.filter = `brightness(${dim})`;
+
+        if (prefersReducedMotion) return;
+        const img = panel.querySelector(".journey__media img");
+        if (!img) return;
+        const rect = img.getBoundingClientRect();
+        if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+        const center = rect.top + rect.height / 2 - window.innerHeight / 2;
+        const imgProgress = Math.min(Math.max(-center / window.innerHeight, -0.5), 0.5);
+        img.style.transform = `translateY(${imgProgress * 14}%) scale(1.1)`;
+      });
+    }
+
+    function loop(now) {
+      computeTargets();
+      render(now);
+      rafId = requestAnimationFrame(loop);
+    }
+
+    const isStacked = () => window.matchMedia("(min-width: 861px)").matches;
+    let rafId = null;
+    function startLoop() {
+      if (rafId) return;
+      lastTime = null;
+      rafId = requestAnimationFrame(loop);
+    }
+    function stopLoop() {
+      if (!rafId) return;
+      cancelAnimationFrame(rafId);
+      rafId = null;
+      stackPanels.forEach((panel) => {
+        panel.style.transform = "";
+        panel.style.filter = "";
+      });
+    }
+    function syncLoop() {
+      if (isStacked()) startLoop();
+      else stopLoop();
+    }
+    syncLoop();
+    window.addEventListener("resize", syncLoop);
   }
 
   /* ---------------------------------------------------------
@@ -250,19 +447,287 @@
   }
 
   /* ---------------------------------------------------------
-     Magnetic buttons
+     Magnetic elements (buttons get a strong pull, nav/tabs a light one)
+  --------------------------------------------------------- */
+  function enableMagnetic(el, strengthX, strengthY) {
+    el.addEventListener("mousemove", (e) => {
+      const r = el.getBoundingClientRect();
+      const x = e.clientX - r.left - r.width / 2;
+      const y = e.clientY - r.top - r.height / 2;
+      el.style.transform = `translate(${x * strengthX}px, ${y * strengthY}px)`;
+    });
+    el.addEventListener("mouseleave", () => {
+      el.style.transform = "translate(0,0)";
+    });
+  }
+
+  if (hasFinePointer && !prefersReducedMotion) {
+    document.querySelectorAll(".btn").forEach((btn) => enableMagnetic(btn, 0.18, 0.35));
+  }
+
+  /* ---------------------------------------------------------
+     3D tilt on cards & images
+  --------------------------------------------------------- */
+  function enableTilt(el, max, scale) {
+    el.style.transition = "transform .4s cubic-bezier(.16,.84,.36,1)";
+    el.addEventListener("mousemove", (e) => {
+      const r = el.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width;
+      const py = (e.clientY - r.top) / r.height;
+      const rx = (py - 0.5) * -max;
+      const ry = (px - 0.5) * max;
+      el.style.transform = `perspective(1000px) rotateX(${rx}deg) rotateY(${ry}deg) scale(${scale})`;
+    });
+    el.addEventListener("mouseleave", () => {
+      el.style.transform = "perspective(1000px) rotateX(0deg) rotateY(0deg) scale(1)";
+    });
+  }
+
+  if (hasFinePointer && !prefersReducedMotion) {
+    document.querySelectorAll(".journey__media").forEach((el) => enableTilt(el, 9, 1.03));
+    document.querySelectorAll(".phone").forEach((el) => enableTilt(el, 12, 1.02));
+    document.querySelectorAll(".cycle__frame").forEach((el) => enableTilt(el, 5, 1.01));
+  }
+
+  /* ---------------------------------------------------------
+     Cursor labels ("View" on image cards etc.)
   --------------------------------------------------------- */
   if (hasFinePointer && !prefersReducedMotion) {
-    document.querySelectorAll(".btn").forEach((btn) => {
-      btn.addEventListener("mousemove", (e) => {
-        const r = btn.getBoundingClientRect();
-        const x = e.clientX - r.left - r.width / 2;
-        const y = e.clientY - r.top - r.height / 2;
-        btn.style.transform = `translate(${x * 0.18}px, ${y * 0.35}px)`;
+    const cursorEl = document.getElementById("cursor");
+    const cursorLabel = document.getElementById("cursorLabel");
+    document.querySelectorAll("[data-cursor-label]").forEach((el) => {
+      el.addEventListener("mouseenter", () => {
+        if (!cursorEl || !cursorLabel) return;
+        cursorLabel.textContent = el.dataset.cursorLabel;
+        cursorEl.classList.add("has-label");
       });
-      btn.addEventListener("mouseleave", () => {
-        btn.style.transform = "translate(0,0)";
+      el.addEventListener("mouseleave", () => {
+        if (!cursorEl || !cursorLabel) return;
+        cursorEl.classList.remove("has-label");
       });
+    });
+  }
+
+  /* ---------------------------------------------------------
+     Experience — the phone stays put; its screen (and the
+     matching copy alongside it) scroll-scrubs through
+     Payments / Contracts / Maintenance / Documents, morphing
+     in place rather than hard-cutting, the same technique as
+     the Journey role morph above. Below the breakpoint there's
+     no headroom for a sticky scroll-scrub, so it auto-cycles
+     instead while the phone is in view.
+  --------------------------------------------------------- */
+  const experienceScroller = document.querySelector(".experience__scroller");
+  const experienceBeats = document.querySelectorAll(".experience__beat");
+  const appScreens = document.querySelectorAll(".app-screen");
+  const experienceCopies = document.querySelectorAll(".experience__copy");
+  const experienceDots = document.querySelectorAll(".experience__dots button");
+  const screenNames = Array.from(experienceBeats).map((b) => b.dataset.screen);
+
+  let payLoopTimer = null;
+  function playPayLoop() {
+    const btn = document.getElementById("payNowBtn");
+    if (!btn) return;
+    btn.textContent = "Paid ✓";
+    btn.classList.add("is-success");
+    payLoopTimer = setTimeout(() => {
+      btn.textContent = "Pay Now";
+      btn.classList.remove("is-success");
+      payLoopTimer = setTimeout(playPayLoop, 3200);
+    }, 1900);
+  }
+  function stopPayLoop() {
+    clearTimeout(payLoopTimer);
+    const btn = document.getElementById("payNowBtn");
+    if (btn) {
+      btn.textContent = "Pay Now";
+      btn.classList.remove("is-success");
+    }
+  }
+
+  let signLoopTimer = null;
+  function playSignLoop() {
+    const btn = document.getElementById("signBtn");
+    if (!btn) return;
+    btn.textContent = "Signed ✓";
+    btn.classList.add("is-success");
+    signLoopTimer = setTimeout(() => {
+      btn.textContent = "Sign Digitally";
+      btn.classList.remove("is-success");
+      signLoopTimer = setTimeout(playSignLoop, 3200);
+    }, 1900);
+  }
+  function stopSignLoop() {
+    clearTimeout(signLoopTimer);
+    const btn = document.getElementById("signBtn");
+    if (btn) {
+      btn.textContent = "Sign Digitally";
+      btn.classList.remove("is-success");
+    }
+  }
+
+  function setActiveScreen(index) {
+    const name = screenNames[index];
+    if (!name) return;
+    appScreens.forEach((s) => s.classList.toggle("is-active", s.dataset.screen === name));
+    experienceCopies.forEach((c) => c.classList.toggle("is-active", c.dataset.screen === name));
+    experienceDots.forEach((d, i) => d.classList.toggle("is-active", i === index));
+
+    if (!prefersReducedMotion) {
+      if (name === "payments") setTimeout(playPayLoop, 900);
+      else stopPayLoop();
+      if (name === "contracts") setTimeout(playSignLoop, 900);
+      else stopSignLoop();
+    }
+  }
+
+  const isWideEnoughForExperienceScroll = () => window.matchMedia("(min-width: 901px)").matches;
+
+  // True scroll-lock: once the phone is pinned, wheel/key input is
+  // consumed to step through the four screens instead of letting a
+  // single fast scroll blow past the section — the page only moves
+  // on again once you've scrolled all the way through (or back out
+  // the top). `event.lenisStopPropagation` tells Lenis to ignore an
+  // event we're handling ourselves; combined with `lenis.stop()`
+  // while locked, this fully freezes page scroll during the sequence.
+  const experienceInner = document.querySelector(".experience__inner");
+  let expIndex = 0;
+  let expLocked = false;
+  let expWheelAccum = 0;
+  let expLastStepAt = 0;
+  const EXP_STICKY_TOP = 140;
+  const EXP_STEP = 90;
+  // matches the longest crossfade transition (.experience__copy, .8s) so
+  // one screen fully settles before the next step is allowed to start
+  const EXP_STEP_COOLDOWN = 800;
+
+  function stepExperienceTo(index) {
+    expIndex = Math.min(Math.max(index, 0), screenNames.length - 1);
+    setActiveScreen(expIndex);
+    expLastStepAt = performance.now();
+  }
+
+  function setExperienceLocked(next) {
+    if (expLocked === next) return;
+    expLocked = next;
+    expWheelAccum = 0;
+    if (!lenis) return;
+    if (next) lenis.stop();
+    else lenis.start();
+  }
+
+  function isExperiencePinned() {
+    if (!experienceInner) return false;
+    const top = experienceInner.getBoundingClientRect().top;
+    return Math.abs(top - EXP_STICKY_TOP) < 2;
+  }
+
+  function handleExperienceWheel(e) {
+    if (!expLocked) return;
+    const dy = e.deltaY;
+    if (dy > 0 && expIndex >= screenNames.length - 1) {
+      setExperienceLocked(false);
+      return;
+    }
+    if (dy < 0 && expIndex <= 0) {
+      setExperienceLocked(false);
+      return;
+    }
+    e.preventDefault();
+    e.lenisStopPropagation = true;
+    // still frozen, but ignore delta while the last step's crossfade
+    // is still settling — keeps a fast scroll from skimming past
+    // screens before they've actually been shown
+    if (performance.now() - expLastStepAt < EXP_STEP_COOLDOWN) return;
+    expWheelAccum += dy;
+    if (expWheelAccum >= EXP_STEP) {
+      stepExperienceTo(expIndex + 1);
+      expWheelAccum = 0;
+    } else if (expWheelAccum <= -EXP_STEP) {
+      stepExperienceTo(expIndex - 1);
+      expWheelAccum = 0;
+    }
+  }
+
+  function handleExperienceKey(e) {
+    if (!expLocked) return;
+    const forwardKeys = ["ArrowDown", "PageDown", " "];
+    const backKeys = ["ArrowUp", "PageUp"];
+    if (forwardKeys.includes(e.key)) {
+      if (expIndex >= screenNames.length - 1) {
+        setExperienceLocked(false);
+        return;
+      }
+      e.preventDefault();
+      if (performance.now() - expLastStepAt < EXP_STEP_COOLDOWN) return;
+      stepExperienceTo(expIndex + 1);
+    } else if (backKeys.includes(e.key)) {
+      if (expIndex <= 0) {
+        setExperienceLocked(false);
+        return;
+      }
+      e.preventDefault();
+      if (performance.now() - expLastStepAt < EXP_STEP_COOLDOWN) return;
+      stepExperienceTo(expIndex - 1);
+    }
+  }
+
+  if (screenNames.length && experienceInner) {
+    window.addEventListener("wheel", handleExperienceWheel, { capture: true, passive: false });
+    window.addEventListener("keydown", handleExperienceKey, { capture: true });
+
+    function pollExperienceLock() {
+      const shouldLock = isWideEnoughForExperienceScroll() && !prefersReducedMotion && isExperiencePinned();
+      setExperienceLocked(shouldLock);
+      requestAnimationFrame(pollExperienceLock);
+    }
+    requestAnimationFrame(pollExperienceLock);
+  }
+
+  experienceDots.forEach((dot, index) => {
+    dot.addEventListener("click", () => {
+      if (isWideEnoughForExperienceScroll() && !prefersReducedMotion && experienceScroller && !isExperiencePinned()) {
+        const offset = -80;
+        if (lenis) lenis.scrollTo(experienceScroller, { offset, duration: 1.1 });
+        else experienceScroller.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      stepExperienceTo(index);
+    });
+  });
+
+  // mobile / narrow-viewport fallback: auto-cycle the four screens
+  // on a timer while the phone is in view, since there's no sticky
+  // headroom to scroll-scrub against on small screens
+  const experienceSection = document.getElementById("experience");
+  if (experienceSection && screenNames.length && !prefersReducedMotion && "IntersectionObserver" in window) {
+    let mobileTimer = null;
+    let mobileIndex = 0;
+    function startMobileCycle() {
+      if (mobileTimer || isWideEnoughForExperienceScroll()) return;
+      mobileIndex = 0;
+      setActiveScreen(mobileIndex);
+      mobileTimer = setInterval(() => {
+        mobileIndex = (mobileIndex + 1) % screenNames.length;
+        setActiveScreen(mobileIndex);
+      }, 3600);
+    }
+    function stopMobileCycle() {
+      clearInterval(mobileTimer);
+      mobileTimer = null;
+    }
+    const experienceIO = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (isWideEnoughForExperienceScroll()) return;
+          if (entry.isIntersecting) startMobileCycle();
+          else stopMobileCycle();
+        });
+      },
+      { threshold: 0.4 }
+    );
+    experienceIO.observe(experienceSection);
+    window.addEventListener("resize", () => {
+      if (isWideEnoughForExperienceScroll()) stopMobileCycle();
     });
   }
 })();

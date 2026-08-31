@@ -21,24 +21,13 @@
 <!-- Custom cursor -->
 <div class="cursor" id="cursor">
   <div class="cursor__dot"></div>
-  <div class="cursor__ring"></div>
+  <div class="cursor__ring"><span class="cursor__label" id="cursorLabel"></span></div>
 </div>
 
 <!-- Nav -->
 <header class="nav" id="nav">
   <div class="nav__inner">
     <a href="#top" class="nav__logo" data-cursor="link">NEOWAA</a>
-    <nav class="nav__links">
-      <a href="#cycle" data-cursor="link">Rental Cycle</a>
-      <a href="#journey" data-cursor="link">Journey</a>
-      <a href="#experience" data-cursor="link">Experience</a>
-      <a href="#faq" data-cursor="link">FAQs</a>
-    </nav>
-    <div class="nav__meta">
-      <span>103 Palm Grove, Al Barsha, Dubai</span>
-      <span class="dot">&middot;</span>
-      <span>+971 51234 7546</span>
-    </div>
     <div class="nav__actions">
       <a href="#download" class="btn btn--gold btn--sm" data-cursor="link"><span>Download app</span></a>
       <button class="burger" id="burger" aria-label="Open menu" data-cursor="link">
@@ -107,15 +96,9 @@
     </div>
   </section>
 
-  <!-- MARQUEE STRIP -->
+  <!-- MARQUEE STRIP — JS clones this single set enough times to loop seamlessly at any width -->
   <div class="marquee marquee--top" aria-hidden="true">
     <div class="marquee__track">
-      <span>Verification</span><span class="dash">&mdash;</span>
-      <span>Contract</span><span class="dash">&mdash;</span>
-      <span>Payments</span><span class="dash">&mdash;</span>
-      <span>Maintenance</span><span class="dash">&mdash;</span>
-      <span>Renewal</span><span class="dash">&mdash;</span>
-      <span>Move&#8209;out</span><span class="dash">&mdash;</span>
       <span>Verification</span><span class="dash">&mdash;</span>
       <span>Contract</span><span class="dash">&mdash;</span>
       <span>Payments</span><span class="dash">&mdash;</span>
@@ -128,10 +111,7 @@
   <!-- ABOUT -->
   <section class="about" id="about">
     <div class="about__inner">
-      <p class="about__lede reveal-up">
-        <span class="about__brand">Neowaa</span> is an all-in-one rental management platform that helps property
-        owners, tenants, and brokers simplify contracts, payments, and maintenance.
-      </p>
+      <p class="about__lede word-reveal" id="aboutLede"><span class="about__brand word">Neowaa</span> <span class="word">is</span> <span class="word">an</span> <span class="word">all-in-one</span> <span class="word">rental</span> <span class="word">management</span> <span class="word">platform</span> <span class="word">that</span> <span class="word">helps</span> <span class="word">property</span> <span class="word">owners,</span> <span class="word">tenants,</span> <span class="word">and</span> <span class="word">brokers</span> <span class="word">simplify</span> <span class="word">contracts,</span> <span class="word">payments,</span> <span class="word">and</span> <span class="word">maintenance.</span></p>
 
       <ul class="about__pills">
         <li class="reveal-up"><span class="about__icon">&#9670;</span>Built for UAE</li>
@@ -149,8 +129,8 @@
       <h2 class="reveal-up">Neowaa helps manage your <em>Rental Cycle!</em></h2>
     </div>
 
-    <div class="cycle__frame reveal-scale">
-      <img src="assets/img/cycle-skyline.jpg" alt="Dubai skyline at dusk" loading="lazy">
+    <div class="cycle__frame reveal-scale" id="cycleFrame">
+      <img src="assets/img/cycle-skyline.jpg" alt="Dubai skyline at dusk" loading="lazy" id="cycleFrameImg">
       <div class="cycle__frame-overlay"></div>
     </div>
 
@@ -162,16 +142,10 @@
         <span>Maintenance</span><span class="diamond">&#9670;</span>
         <span>Renewal</span><span class="diamond">&#9670;</span>
         <span>Move&#8209;out</span><span class="diamond">&#9670;</span>
-        <span>Verification</span><span class="diamond">&#9670;</span>
-        <span>Contract</span><span class="diamond">&#9670;</span>
-        <span>Payments</span><span class="diamond">&#9670;</span>
-        <span>Maintenance</span><span class="diamond">&#9670;</span>
-        <span>Renewal</span><span class="diamond">&#9670;</span>
-        <span>Move&#8209;out</span><span class="diamond">&#9670;</span>
       </div>
     </div>
 
-    <p class="cycle__copy reveal-up">
+    <p class="cycle__copy word-reveal" id="cycleCopy">
       Managing rent payments, maintenance, documents, renewals, and move-outs shouldn't require multiple apps
       and endless paperwork. Neowaa brings every step together in one secure platform.
     </p>
@@ -184,62 +158,68 @@
       <p class="eyebrow reveal-up">From onboarding to move-out</p>
       <h2 class="reveal-up">The complete rental journey<br>in one platform</h2>
 
-      <div class="tabs reveal-up" role="tablist">
-        <button class="tabs__btn is-active" data-tab="broker" role="tab">Broker</button>
-        <button class="tabs__btn" data-tab="owner" role="tab">Owner</button>
-        <button class="tabs__btn" data-tab="tenant" role="tab">Tenant</button>
-      </div>
+      <div class="journey__stack">
 
-      <div class="journey__panels">
-
-        <div class="journey__panel is-active" data-panel="broker">
-          <div class="journey__text">
-            <h3>Broker</h3>
-            <p>Manage clients, properties, and agreements in one workspace.</p>
-            <ul class="check-list">
-              <li>Verify Property</li>
-              <li>Coordinate Agreement</li>
-              <li>Assist Communication</li>
-              <li>Support Renewal</li>
-            </ul>
-            <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
-          </div>
-          <div class="journey__media">
-            <img src="assets/img/journey-broker.jpg" alt="Luxury villa with infinity pool at dusk" loading="lazy">
+        <div class="stack-card-slot" data-panel="broker">
+          <div class="stack-card">
+            <div class="stack-card__panel">
+              <div class="journey__text">
+                <h3>Broker</h3>
+                <p>Manage clients, properties, and agreements in one workspace.</p>
+                <ul class="check-list">
+                  <li>Verify Property</li>
+                  <li>Coordinate Agreement</li>
+                  <li>Assist Communication</li>
+                  <li>Support Renewal</li>
+                </ul>
+                <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
+              </div>
+              <div class="journey__media" data-cursor-label="View">
+                <img src="assets/img/journey-broker.jpg" alt="Luxury villa with infinity pool at dusk" loading="lazy">
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="journey__panel" data-panel="owner">
-          <div class="journey__text">
-            <h3>Owner</h3>
-            <p>Track your properties, tenants, and income from a single dashboard.</p>
-            <ul class="check-list">
-              <li>List Property</li>
-              <li>Approve Tenants</li>
-              <li>Track Payments</li>
-              <li>Manage Renewals</li>
-            </ul>
-            <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
-          </div>
-          <div class="journey__media">
-            <img src="assets/img/journey-owner.jpg" alt="Bright modern villa with pool" loading="lazy">
+        <div class="stack-card-slot" data-panel="owner">
+          <div class="stack-card">
+            <div class="stack-card__panel">
+              <div class="journey__text">
+                <h3>Owner</h3>
+                <p>Track your properties, tenants, and income from a single dashboard.</p>
+                <ul class="check-list">
+                  <li>List Property</li>
+                  <li>Approve Tenants</li>
+                  <li>Track Payments</li>
+                  <li>Manage Renewals</li>
+                </ul>
+                <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
+              </div>
+              <div class="journey__media" data-cursor-label="View">
+                <img src="assets/img/journey-owner.jpg" alt="Bright modern villa with pool" loading="lazy">
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="journey__panel" data-panel="tenant">
-          <div class="journey__text">
-            <h3>Tenant</h3>
-            <p>Pay rent, submit requests, and manage your home &mdash; all in one app.</p>
-            <ul class="check-list">
-              <li>Pay Rent Digitally</li>
-              <li>Request Maintenance</li>
-              <li>Sign Contracts</li>
-              <li>Renew Instantly</li>
-            </ul>
-            <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
-          </div>
-          <div class="journey__media">
-            <img src="assets/img/journey-tenant.jpg" alt="Modern villa with swimming pool" loading="lazy">
+        <div class="stack-card-slot" data-panel="tenant">
+          <div class="stack-card">
+            <div class="stack-card__panel">
+              <div class="journey__text">
+                <h3>Tenant</h3>
+                <p>Pay rent, submit requests, and manage your home &mdash; all in one app.</p>
+                <ul class="check-list">
+                  <li>Pay Rent Digitally</li>
+                  <li>Request Maintenance</li>
+                  <li>Sign Contracts</li>
+                  <li>Renew Instantly</li>
+                </ul>
+                <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
+              </div>
+              <div class="journey__media" data-cursor-label="View">
+                <img src="assets/img/journey-tenant.jpg" alt="Modern villa with swimming pool" loading="lazy">
+              </div>
+            </div>
           </div>
         </div>
 
@@ -250,54 +230,191 @@
   <!-- EXPERIENCE -->
   <section class="experience" id="experience">
     <div class="experience__glow"></div>
-    <div class="experience__inner">
-      <div class="experience__phone reveal-scale">
-        <div class="phone">
-          <div class="phone__notch"></div>
-          <div class="phone__screen">
-            <div class="app-status">
-              <span>9:41</span>
-              <span class="app-status__icons">&#9679;&#9679;&#9679;</span>
-            </div>
-            <p class="app-label">neowaa</p>
-            <div class="app-search">Search property</div>
+    <div class="experience__scroller" id="experienceScroller">
+      <div class="experience__inner">
+        <div class="experience__phone reveal-scale">
+          <div class="phone-float">
+          <div class="phone">
+            <div class="phone__notch"></div>
+            <div class="phone__screen">
+              <div class="app-status">
+                <span>9:41</span>
+                <span class="app-status__icons">&#9679;&#9679;&#9679;</span>
+              </div>
+              <p class="app-label">neowaa</p>
 
-            <div class="app-progress">
-              <svg viewBox="0 0 120 120" class="app-progress__ring">
-                <circle cx="60" cy="60" r="52" class="track"></circle>
-                <circle cx="60" cy="60" r="52" class="value" id="progressRing"></circle>
-              </svg>
-              <div class="app-progress__label">
-                <span class="app-progress__num" id="progressNum">0</span><span>%</span>
+              <div class="app-screens">
+
+                <div class="app-screen is-active" data-screen="payments">
+                  <div class="app-search">Search property</div>
+                  <div class="app-progress">
+                    <svg viewBox="0 0 120 120" class="app-progress__ring">
+                      <circle cx="60" cy="60" r="52" class="track"></circle>
+                      <circle cx="60" cy="60" r="52" class="value" id="progressRing"></circle>
+                    </svg>
+                    <div class="app-progress__label">
+                      <span class="app-progress__num" id="progressNum">0</span><span>%</span>
+                    </div>
+                  </div>
+                  <p class="app-hint">Add documents to unlock renewals</p>
+                  <button class="app-cta">Complete Your Profile</button>
+                  <div class="app-card">
+                    <div class="app-card__row">
+                      <span>Rent Payment</span>
+                      <span class="app-card__amt">AED 8,500</span>
+                    </div>
+                    <button class="app-card__btn" id="payNowBtn">Pay Now</button>
+                  </div>
+                </div>
+
+                <div class="app-screen" data-screen="contracts">
+                  <p class="app-hint app-hint--label">Lease Agreements</p>
+                  <div class="app-doclist">
+                    <div class="app-doc">
+                      <span class="app-doc__icon">&#128196;</span>
+                      <div class="app-doc__info">
+                        <span class="app-doc__name">Tenancy Contract 2026.pdf</span>
+                        <span class="app-doc__meta">2.4 MB &middot; Awaiting signature</span>
+                      </div>
+                    </div>
+                    <div class="app-doc">
+                      <span class="app-doc__icon">&#128196;</span>
+                      <div class="app-doc__info">
+                        <span class="app-doc__name">Addendum.pdf</span>
+                        <span class="app-doc__meta">180 KB &middot; Signed</span>
+                      </div>
+                      <span class="app-doc__badge">&#10003;</span>
+                    </div>
+                  </div>
+                  <div class="app-card">
+                    <div class="app-card__row">
+                      <span>Tenancy Contract 2026</span>
+                      <span class="app-card__amt">Ready</span>
+                    </div>
+                    <button class="app-card__btn" id="signBtn">Sign Digitally</button>
+                  </div>
+                </div>
+
+                <div class="app-screen" data-screen="maintenance">
+                  <p class="app-hint app-hint--label">AC Repair &middot; Apt 204</p>
+                  <div class="app-steps">
+                    <div class="app-step is-done"><span class="app-step__dot"></span>Submitted</div>
+                    <div class="app-step is-active"><span class="app-step__dot"></span>In Progress</div>
+                    <div class="app-step"><span class="app-step__dot"></span>Resolved</div>
+                  </div>
+                  <div class="app-card">
+                    <div class="app-card__row">
+                      <span>Technician assigned</span>
+                      <span class="app-card__amt">Today</span>
+                    </div>
+                    <button class="app-card__btn">New Request</button>
+                  </div>
+                </div>
+
+                <div class="app-screen" data-screen="documents">
+                  <p class="app-hint app-hint--label">Document Vault</p>
+                  <div class="app-doclist">
+                    <div class="app-doc">
+                      <span class="app-doc__icon">&#128274;</span>
+                      <div class="app-doc__info">
+                        <span class="app-doc__name">Emirates ID.pdf</span>
+                        <span class="app-doc__meta">Encrypted</span>
+                      </div>
+                    </div>
+                    <div class="app-doc">
+                      <span class="app-doc__icon">&#128274;</span>
+                      <div class="app-doc__info">
+                        <span class="app-doc__name">Passport Copy.pdf</span>
+                        <span class="app-doc__meta">Encrypted</span>
+                      </div>
+                    </div>
+                    <div class="app-doc">
+                      <span class="app-doc__icon">&#128274;</span>
+                      <div class="app-doc__info">
+                        <span class="app-doc__name">Tenancy Contract.pdf</span>
+                        <span class="app-doc__meta">Encrypted</span>
+                      </div>
+                    </div>
+                  </div>
+                  <button class="app-cta">Upload Document</button>
+                </div>
+
               </div>
             </div>
-            <p class="app-hint">Add documents to unlock renewals</p>
-            <button class="app-cta">Complete Your Profile</button>
+          </div>
+          </div>
+        </div>
 
-            <div class="app-card">
-              <div class="app-card__row">
-                <span>Rent Payment</span>
-                <span class="app-card__amt">AED 8,500</span>
+        <div class="experience__text">
+          <p class="eyebrow reveal-up">Experience Neowaa</p>
+
+          <div class="experience__copy-stack">
+            <div class="experience__copy is-active" data-screen="payments">
+              <h2>Online Rent<br><em>Payments</em></h2>
+              <p class="experience__desc">
+                Set up automated, secure rent payments via direct deposit or credit card.
+                View full historical logs and digital receipts.
+              </p>
+              <div class="tag-row">
+                <span>Auto-debit</span>
+                <span>Digital receipts</span>
+                <span>Payment history</span>
               </div>
-              <button class="app-card__btn">Pay Now</button>
             </div>
+
+            <div class="experience__copy" data-screen="contracts">
+              <h2>Digital<br><em>Contracts</em></h2>
+              <p class="experience__desc">
+                Sign lease agreements digitally and keep every contract, addendum, and renewal
+                in one place.
+              </p>
+              <div class="tag-row">
+                <span>E-signatures</span>
+                <span>Instant approval</span>
+                <span>Audit trail</span>
+              </div>
+            </div>
+
+            <div class="experience__copy" data-screen="maintenance">
+              <h2>Maintenance,<br><em>Handled</em></h2>
+              <p class="experience__desc">
+                Submit a request in seconds and track it from submitted to resolved, with
+                updates the moment status changes.
+              </p>
+              <div class="tag-row">
+                <span>Photo upload</span>
+                <span>Live status</span>
+                <span>Direct chat</span>
+              </div>
+            </div>
+
+            <div class="experience__copy" data-screen="documents">
+              <h2>Documents,<br><em>Secured</em></h2>
+              <p class="experience__desc">
+                Every ID, contract, and record lives in one encrypted vault &mdash; backed up
+                automatically and easy to share when you need to.
+              </p>
+              <div class="tag-row">
+                <span>End-to-end encrypted</span>
+                <span>Auto-backup</span>
+                <span>Easy sharing</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="experience__dots" role="tablist" aria-label="App feature">
+            <button class="is-active" data-screen="payments" aria-label="Payments" role="tab"></button>
+            <button data-screen="contracts" aria-label="Contracts" role="tab"></button>
+            <button data-screen="maintenance" aria-label="Maintenance" role="tab"></button>
+            <button data-screen="documents" aria-label="Documents" role="tab"></button>
           </div>
         </div>
       </div>
 
-      <div class="experience__text">
-        <p class="eyebrow reveal-up">Experience Neowaa</p>
-        <h2 class="reveal-up">Online Rent<br><em>Payments</em></h2>
-        <p class="reveal-up experience__desc">
-          Set up automated, secure rent payments via direct deposit or credit card.
-          View full historical logs and digital receipts.
-        </p>
-        <div class="tag-row reveal-up">
-          <span>Auto-debit</span>
-          <span>Digital receipts</span>
-          <span>Payment history</span>
-        </div>
-      </div>
+      <div class="experience__beat" data-screen="payments"></div>
+      <div class="experience__beat" data-screen="contracts"></div>
+      <div class="experience__beat" data-screen="maintenance"></div>
+      <div class="experience__beat" data-screen="documents"></div>
     </div>
   </section>
 
@@ -315,28 +432,28 @@
         <span class="feature-row__icon">&#9635;</span>
         <div>
           <h4>Secure Storage</h4>
-          <p>Store contracts, documents, and rental records securely.</p>
+          <p class="word-reveal">Store contracts, documents, and rental records securely.</p>
         </div>
       </div>
       <div class="feature-row reveal-up">
         <span class="feature-row__icon">&#8644;</span>
         <div>
           <h4>Better Collaboration</h4>
-          <p>Keep owners, tenants, and brokers connected throughout the rental journey.</p>
+          <p class="word-reveal">Keep owners, tenants, and brokers connected throughout the rental journey.</p>
         </div>
       </div>
       <div class="feature-row reveal-up">
         <span class="feature-row__icon">&#9978;</span>
         <div>
           <h4>Secure by Design</h4>
-          <p>Identity verification and encrypted document storage help protect sensitive information.</p>
+          <p class="word-reveal">Identity verification and encrypted document storage help protect sensitive information.</p>
         </div>
       </div>
       <div class="feature-row reveal-up">
         <span class="feature-row__icon">&#9201;</span>
         <div>
           <h4>Save Time</h4>
-          <p>Reduce paperwork and manage daily tasks more efficiently.</p>
+          <p class="word-reveal">Reduce paperwork and manage daily tasks more efficiently.</p>
         </div>
       </div>
     </div>
@@ -444,6 +561,7 @@
   </div>
 </footer>
 
+<script src="assets/js/vendor/lenis.min.js"></script>
 <script src="assets/js/main.js"></script>
 </body>
 </html>
