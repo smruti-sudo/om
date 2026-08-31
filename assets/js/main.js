@@ -230,43 +230,56 @@
   }
 
   /* ---------------------------------------------------------
-     About lede — words brighten one by one as you scroll,
-     dimming back if you scroll back up (scroll-scrubbed, not
-     a one-shot reveal).
+     Word-by-word brighten — words scroll-scrub from dim to full
+     opacity as their paragraph passes through a reading zone,
+     dimming back if you scroll back up (not a one-shot reveal).
+     Used on the About lede, Rental Cycle copy, and the Confidence
+     feature descriptions.
   --------------------------------------------------------- */
-  const aboutLede = document.getElementById("aboutLede");
-  const aboutWords = aboutLede ? Array.from(aboutLede.querySelectorAll(".word")) : [];
-  if (aboutLede && aboutWords.length) {
-    if (prefersReducedMotion) {
-      aboutWords.forEach((word) => (word.style.opacity = 1));
-    } else {
-      let aboutTicking = false;
-      function updateAboutLede() {
-        aboutTicking = false;
-        const rect = aboutLede.getBoundingClientRect();
-        const start = window.innerHeight * 1.05;
-        const end = window.innerHeight * 0.1;
-        const progress = Math.min(Math.max((start - rect.top) / (start - end), 0), 1);
-        const n = aboutWords.length;
-        aboutWords.forEach((word, i) => {
-          const wordProgress = Math.min(Math.max(progress * n - i, 0), 1);
-          word.style.opacity = 0.25 + 0.75 * wordProgress;
-        });
-      }
-      window.addEventListener(
-        "scroll",
-        () => {
-          if (!aboutTicking) {
-            aboutTicking = true;
-            requestAnimationFrame(updateAboutLede);
-          }
-        },
-        { passive: true }
-      );
-      window.addEventListener("resize", updateAboutLede);
-      updateAboutLede();
-    }
+  function wrapWords(el) {
+    if (el.querySelector(".word")) return; // already wrapped (e.g. About lede's hand-authored markup)
+    el.innerHTML = el.textContent
+      .split(/(\s+)/)
+      .map((chunk) => (chunk.trim() === "" ? chunk : `<span class="word">${chunk}</span>`))
+      .join("");
   }
+
+  function initWordReveal(el, { start = 1.05, end = 0.1 } = {}) {
+    wrapWords(el);
+    const words = Array.from(el.querySelectorAll(".word"));
+    if (!words.length) return;
+    if (prefersReducedMotion) {
+      words.forEach((word) => (word.style.opacity = 1));
+      return;
+    }
+    let ticking = false;
+    function update() {
+      ticking = false;
+      const rect = el.getBoundingClientRect();
+      const startPx = window.innerHeight * start;
+      const endPx = window.innerHeight * end;
+      const progress = Math.min(Math.max((startPx - rect.top) / (startPx - endPx), 0), 1);
+      const n = words.length;
+      words.forEach((word, i) => {
+        const wordProgress = Math.min(Math.max(progress * n - i, 0), 1);
+        word.style.opacity = 0.25 + 0.75 * wordProgress;
+      });
+    }
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (!ticking) {
+          ticking = true;
+          requestAnimationFrame(update);
+        }
+      },
+      { passive: true }
+    );
+    window.addEventListener("resize", update);
+    update();
+  }
+
+  document.querySelectorAll(".word-reveal").forEach((el) => initWordReveal(el));
 
   /* ---------------------------------------------------------
      Journey stack — purely scroll-driven: as the next card

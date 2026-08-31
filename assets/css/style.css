@@ -181,6 +181,13 @@ em{
 }
 .reveal-scale.is-inview{ opacity: 1; transform: scale(1); }
 
+/* Scroll-scrubbed word-by-word brighten (JS toggles each .word's
+   opacity continuously as it scrolls through the reading zone) */
+.word-reveal .word{
+  opacity: .25;
+  transition: opacity .15s linear;
+}
+
 /* stagger children that carry reveal-up inside a common parent */
 .about__pills li:nth-child(1){ transition-delay: .02s; }
 .about__pills li:nth-child(2){ transition-delay: .08s; }
@@ -469,10 +476,9 @@ em{
   color: var(--gold);
   font-size: 1.05em;
 }
-.about__lede .word{
-  opacity: .25;
-  transition: opacity .15s linear;
-}
+/* Scroll-scrubbed word-by-word brighten — see .word-reveal below for
+   the shared rule; used on the About lede, Rental Cycle copy, and
+   the Confidence feature descriptions. */
 .about__pills{
   margin-top: 56px;
   display: flex; flex-wrap: wrap; justify-content: center; gap: 14px;
