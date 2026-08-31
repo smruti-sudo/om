@@ -625,8 +625,11 @@ em{
   box-shadow: 0 40px 80px -20px rgba(0,0,0,.7);
   transform: translateY(0);
 }
-.journey__media img{ width: 100%; height: 100%; object-fit: cover; transition: transform 1.4s var(--ease); }
-.journey__panel:hover .journey__media img{ transform: scale(1.05); }
+.journey__media img{
+  width: 100%; height: 100%; object-fit: cover;
+  transform: scale(1.1);
+  will-change: transform;
+}
 
 @media (max-width: 860px){
   .journey__panel{ grid-template-columns: 1fr; text-align: center; }

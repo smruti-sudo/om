@@ -239,11 +239,41 @@
   function activateTab(name) {
     tabBtns.forEach((b) => b.classList.toggle("is-active", b.dataset.tab === name));
     panels.forEach((p) => p.classList.toggle("is-active", p.dataset.panel === name));
+    updateJourneyParallax();
   }
 
   tabBtns.forEach((btn) => {
     btn.addEventListener("click", () => activateTab(btn.dataset.tab));
   });
+
+  /* ---------------------------------------------------------
+     Journey photos — scroll parallax on the active panel's image
+  --------------------------------------------------------- */
+  let journeyTicking = false;
+  function updateJourneyParallax() {
+    journeyTicking = false;
+    const activeImg = document.querySelector(".journey__panel.is-active .journey__media img");
+    if (!activeImg) return;
+    const rect = activeImg.getBoundingClientRect();
+    if (rect.bottom < 0 || rect.top > window.innerHeight) return;
+    const center = rect.top + rect.height / 2 - window.innerHeight / 2;
+    const progress = Math.min(Math.max(-center / window.innerHeight, -0.5), 0.5);
+    activeImg.style.transform = `translateY(${progress * 14}%) scale(1.1)`;
+  }
+  if (!prefersReducedMotion) {
+    window.addEventListener(
+      "scroll",
+      () => {
+        if (!journeyTicking) {
+          journeyTicking = true;
+          requestAnimationFrame(updateJourneyParallax);
+        }
+      },
+      { passive: true }
+    );
+    window.addEventListener("resize", updateJourneyParallax);
+    updateJourneyParallax();
+  }
 
   // animated pill background behind active tab
   if (tabsWrap && tabBtns.length) {
