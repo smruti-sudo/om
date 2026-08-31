@@ -21,7 +21,7 @@
 <!-- Custom cursor -->
 <div class="cursor" id="cursor">
   <div class="cursor__dot"></div>
-  <div class="cursor__ring"></div>
+  <div class="cursor__ring"><span class="cursor__label" id="cursorLabel"></span></div>
 </div>
 
 <!-- Nav -->
@@ -79,7 +79,8 @@
   <!-- HERO -->
   <section class="hero" id="hero">
     <div class="hero__media">
-      <img class="hero__img" id="heroImg" src="assets/img/hero.jpg" alt="Modern residence at dusk">
+      <!-- Drop in a real photo: recommended 2400x1500, landscape property/architecture shot -->
+      <img class="hero__img" id="heroImg" src="assets/img/placeholders/hero.svg" alt="Modern residence at dusk">
       <div class="hero__gradient"></div>
       <div class="hero__grain"></div>
     </div>
@@ -143,31 +144,37 @@
     </div>
   </section>
 
-  <!-- RENTAL CYCLE -->
+  <!-- RENTAL CYCLE — scroll-pinned storytelling -->
   <section class="cycle" id="cycle">
     <div class="cycle__head">
       <h2 class="reveal-up">Neowaa helps manage your <em>Rental Cycle!</em></h2>
     </div>
 
-    <div class="cycle__frame reveal-scale">
-      <img src="assets/img/cycle-skyline.jpg" alt="Dubai skyline at dusk" loading="lazy">
-      <div class="cycle__frame-overlay"></div>
-    </div>
+    <div class="cycle__pin-wrap" id="cyclePinWrap">
+      <div class="cycle__pin">
+        <div class="cycle__frame reveal-scale" id="cycleFrame">
+          <!-- Drop in a real photo: recommended 2200x1100 (2:1), skyline/cityscape shot -->
+          <img src="assets/img/placeholders/cycle-skyline.svg" alt="Dubai skyline at dusk" loading="lazy" id="cycleFrameImg">
+          <div class="cycle__frame-overlay"></div>
 
-    <div class="marquee marquee--mid" aria-hidden="true">
-      <div class="marquee__track marquee__track--rev">
-        <span>Verification</span><span class="diamond">&#9670;</span>
-        <span>Contract</span><span class="diamond">&#9670;</span>
-        <span>Payments</span><span class="diamond">&#9670;</span>
-        <span>Maintenance</span><span class="diamond">&#9670;</span>
-        <span>Renewal</span><span class="diamond">&#9670;</span>
-        <span>Move&#8209;out</span><span class="diamond">&#9670;</span>
-        <span>Verification</span><span class="diamond">&#9670;</span>
-        <span>Contract</span><span class="diamond">&#9670;</span>
-        <span>Payments</span><span class="diamond">&#9670;</span>
-        <span>Maintenance</span><span class="diamond">&#9670;</span>
-        <span>Renewal</span><span class="diamond">&#9670;</span>
-        <span>Move&#8209;out</span><span class="diamond">&#9670;</span>
+          <div class="cycle__step-display">
+            <span class="cycle__step-index" id="cycleStepIndex">01</span>
+            <span class="cycle__step-name" id="cycleStepName">Verification</span>
+          </div>
+        </div>
+
+        <ol class="cycle__steps" id="cycleSteps" aria-hidden="true">
+          <li class="is-active" data-step="0"><span class="cycle__steps-num">01</span>Verification</li>
+          <li data-step="1"><span class="cycle__steps-num">02</span>Contract</li>
+          <li data-step="2"><span class="cycle__steps-num">03</span>Payments</li>
+          <li data-step="3"><span class="cycle__steps-num">04</span>Maintenance</li>
+          <li data-step="4"><span class="cycle__steps-num">05</span>Renewal</li>
+          <li data-step="5"><span class="cycle__steps-num">06</span>Move&#8209;out</li>
+        </ol>
+
+        <div class="cycle__progress" aria-hidden="true">
+          <span class="cycle__progress-fill" id="cycleProgressFill"></span>
+        </div>
       </div>
     </div>
 
@@ -204,8 +211,9 @@
             </ul>
             <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
           </div>
-          <div class="journey__media">
-            <img src="assets/img/journey-broker.jpg" alt="Luxury villa with infinity pool at dusk" loading="lazy">
+          <div class="journey__media" data-cursor-label="View">
+            <!-- Drop in a real photo: recommended 1400x1120 (5:4), broker/property shot -->
+            <img src="assets/img/placeholders/journey-broker.svg" alt="Luxury villa with infinity pool at dusk" loading="lazy">
           </div>
         </div>
 
@@ -221,8 +229,9 @@
             </ul>
             <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
           </div>
-          <div class="journey__media">
-            <img src="assets/img/journey-owner.jpg" alt="Bright modern villa with pool" loading="lazy">
+          <div class="journey__media" data-cursor-label="View">
+            <!-- Drop in a real photo: recommended 1400x1120 (5:4), owner/property shot -->
+            <img src="assets/img/placeholders/journey-owner.svg" alt="Bright modern villa with pool" loading="lazy">
           </div>
         </div>
 
@@ -238,8 +247,9 @@
             </ul>
             <a href="#" class="btn btn--outline" data-cursor="link"><span>Explore All Features</span></a>
           </div>
-          <div class="journey__media">
-            <img src="assets/img/journey-tenant.jpg" alt="Modern villa with swimming pool" loading="lazy">
+          <div class="journey__media" data-cursor-label="View">
+            <!-- Drop in a real photo: recommended 1400x1120 (5:4), tenant/property shot -->
+            <img src="assets/img/placeholders/journey-tenant.svg" alt="Modern villa with swimming pool" loading="lazy">
           </div>
         </div>
 
@@ -252,6 +262,7 @@
     <div class="experience__glow"></div>
     <div class="experience__inner">
       <div class="experience__phone reveal-scale">
+        <div class="phone-float">
         <div class="phone">
           <div class="phone__notch"></div>
           <div class="phone__screen">
@@ -282,6 +293,7 @@
               <button class="app-card__btn">Pay Now</button>
             </div>
           </div>
+        </div>
         </div>
       </div>
 
@@ -444,6 +456,7 @@
   </div>
 </footer>
 
+<script src="assets/js/vendor/lenis.min.js"></script>
 <script src="assets/js/main.js"></script>
 </body>
 </html>
