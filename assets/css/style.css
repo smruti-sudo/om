@@ -266,37 +266,12 @@ em{
   font-weight: 700; font-size: 20px;
   letter-spacing: .12em;
 }
-.nav__links{
-  display: flex; gap: 34px;
-  font-size: 14px; font-weight: 500;
-}
-.nav__links a{
-  position: relative; opacity: .85;
-  transition: opacity .3s;
-}
-.nav__links a::after{
-  content: ""; position: absolute; left: 0; bottom: -4px;
-  width: 0; height: 1px; background: var(--gold);
-  transition: width .35s var(--ease);
-}
-.nav__links a:hover{ opacity: 1; }
-.nav__links a:hover::after{ width: 100%; }
-
-.nav__meta{
-  display: flex; align-items: center; gap: 8px;
-  font-size: 12.5px; color: var(--muted);
-  white-space: nowrap;
-}
-.nav__meta .dot{ opacity: .5; }
-
 .nav__actions{ display: flex; align-items: center; gap: 16px; }
 
-/* Hide the redundant logo/links/meta behind the fullscreen menu — its
-   own link list already covers them. Download app + the close toggle
-   stay put since the nav sits above the overlay by design. */
-.menu-open .nav__logo,
-.menu-open .nav__links,
-.menu-open .nav__meta{
+/* Hide the redundant logo behind the fullscreen menu — its own link
+   list and contact footer already cover it. Download app + the close
+   toggle stay put since the nav sits above the overlay by design. */
+.menu-open .nav__logo{
   opacity: 0;
   pointer-events: none;
   transition: opacity .3s var(--ease-soft);
@@ -314,10 +289,6 @@ em{
 }
 .menu-open .burger span:nth-child(1){ transform: translateY(3.5px) rotate(45deg); }
 .menu-open .burger span:nth-child(2){ transform: translateY(-3.5px) rotate(-45deg); }
-
-@media (max-width: 1100px){
-  .nav__links, .nav__meta{ display: none; }
-}
 
 /* ============================================================
    Fullscreen menu overlay

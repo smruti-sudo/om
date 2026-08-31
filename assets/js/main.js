@@ -507,7 +507,6 @@
 
   if (hasFinePointer && !prefersReducedMotion) {
     document.querySelectorAll(".btn").forEach((btn) => enableMagnetic(btn, 0.18, 0.35));
-    document.querySelectorAll(".nav__links a").forEach((a) => enableMagnetic(a, 0.12, 0.22));
     document.querySelectorAll(".tabs__btn").forEach((b) => enableMagnetic(b, 0.1, 0.2));
   }
 
