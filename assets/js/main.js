@@ -244,8 +244,8 @@
       function updateAboutLede() {
         aboutTicking = false;
         const rect = aboutLede.getBoundingClientRect();
-        const start = window.innerHeight * 0.85;
-        const end = window.innerHeight * 0.35;
+        const start = window.innerHeight * 1.05;
+        const end = window.innerHeight * 0.1;
         const progress = Math.min(Math.max((start - rect.top) / (start - end), 0), 1);
         const n = aboutWords.length;
         aboutWords.forEach((word, i) => {
