@@ -230,6 +230,45 @@
   }
 
   /* ---------------------------------------------------------
+     About lede — words brighten one by one as you scroll,
+     dimming back if you scroll back up (scroll-scrubbed, not
+     a one-shot reveal).
+  --------------------------------------------------------- */
+  const aboutLede = document.getElementById("aboutLede");
+  const aboutWords = aboutLede ? Array.from(aboutLede.querySelectorAll(".word")) : [];
+  if (aboutLede && aboutWords.length) {
+    if (prefersReducedMotion) {
+      aboutWords.forEach((word) => (word.style.opacity = 1));
+    } else {
+      let aboutTicking = false;
+      function updateAboutLede() {
+        aboutTicking = false;
+        const rect = aboutLede.getBoundingClientRect();
+        const start = window.innerHeight * 0.85;
+        const end = window.innerHeight * 0.35;
+        const progress = Math.min(Math.max((start - rect.top) / (start - end), 0), 1);
+        const n = aboutWords.length;
+        aboutWords.forEach((word, i) => {
+          const wordProgress = Math.min(Math.max(progress * n - i, 0), 1);
+          word.style.opacity = 0.25 + 0.75 * wordProgress;
+        });
+      }
+      window.addEventListener(
+        "scroll",
+        () => {
+          if (!aboutTicking) {
+            aboutTicking = true;
+            requestAnimationFrame(updateAboutLede);
+          }
+        },
+        { passive: true }
+      );
+      window.addEventListener("resize", updateAboutLede);
+      updateAboutLede();
+    }
+  }
+
+  /* ---------------------------------------------------------
      Journey tabs
   --------------------------------------------------------- */
   const tabBtns = document.querySelectorAll(".tabs__btn");

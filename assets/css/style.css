@@ -487,6 +487,10 @@ em{
   color: var(--gold);
   font-size: 1.05em;
 }
+.about__lede .word{
+  opacity: .25;
+  transition: opacity .15s linear;
+}
 .about__pills{
   margin-top: 56px;
   display: flex; flex-wrap: wrap; justify-content: center; gap: 14px;
