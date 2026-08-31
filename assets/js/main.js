@@ -581,12 +581,17 @@
   let expIndex = 0;
   let expLocked = false;
   let expWheelAccum = 0;
+  let expLastStepAt = 0;
   const EXP_STICKY_TOP = 140;
   const EXP_STEP = 90;
+  // matches the longest crossfade transition (.experience__copy, .8s) so
+  // one screen fully settles before the next step is allowed to start
+  const EXP_STEP_COOLDOWN = 800;
 
   function stepExperienceTo(index) {
     expIndex = Math.min(Math.max(index, 0), screenNames.length - 1);
     setActiveScreen(expIndex);
+    expLastStepAt = performance.now();
   }
 
   function setExperienceLocked(next) {
@@ -617,6 +622,10 @@
     }
     e.preventDefault();
     e.lenisStopPropagation = true;
+    // still frozen, but ignore delta while the last step's crossfade
+    // is still settling — keeps a fast scroll from skimming past
+    // screens before they've actually been shown
+    if (performance.now() - expLastStepAt < EXP_STEP_COOLDOWN) return;
     expWheelAccum += dy;
     if (expWheelAccum >= EXP_STEP) {
       stepExperienceTo(expIndex + 1);
@@ -637,6 +646,7 @@
         return;
       }
       e.preventDefault();
+      if (performance.now() - expLastStepAt < EXP_STEP_COOLDOWN) return;
       stepExperienceTo(expIndex + 1);
     } else if (backKeys.includes(e.key)) {
       if (expIndex <= 0) {
@@ -644,6 +654,7 @@
         return;
       }
       e.preventDefault();
+      if (performance.now() - expLastStepAt < EXP_STEP_COOLDOWN) return;
       stepExperienceTo(expIndex - 1);
     }
   }

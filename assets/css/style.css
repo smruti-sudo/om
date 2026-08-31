@@ -662,8 +662,10 @@ em{
   background: radial-gradient(circle, rgba(148,110,255,.18), transparent 65%);
 }
 .experience__scroller{ position: relative; }
-.experience__beat{ height: 85vh; }
-.experience__beat:last-child{ height: 40vh; }
+/* These no longer drive the screen index (that's wheel/key-lock
+   driven, see main.js) — they only give position:sticky enough
+   room to engage and release cleanly, so keep them short. */
+.experience__beat{ height: 20vh; }
 
 .experience__inner{
   position: sticky;
